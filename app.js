@@ -33,11 +33,7 @@ const state = {
 const els = {
   authGate: document.querySelector("#authGate"),
   authStatus: document.querySelector("#authStatus"),
-  authConfigPanel: document.querySelector("#authConfigPanel"),
   googleButton: document.querySelector("#googleButton"),
-  googleClientIdInput: document.querySelector("#googleClientIdInput"),
-  allowedEmailsInput: document.querySelector("#allowedEmailsInput"),
-  saveAuthConfigBtn: document.querySelector("#saveAuthConfigBtn"),
   adminGoogleClientIdInput: document.querySelector("#adminGoogleClientIdInput"),
   adminAllowedEmailsInput: document.querySelector("#adminAllowedEmailsInput"),
   lessonList: document.querySelector("#lessonList"),
@@ -146,7 +142,7 @@ function createLesson(id, title, subtitle, videoId) {
 
 function initializeGoogleSignIn() {
   if (!authConfig.googleClientId) {
-    els.authStatus.textContent = "Add your Google OAuth Client ID to enable sign-in on GitHub Pages.";
+    els.authStatus.textContent = "Google sign-in is not configured yet.";
     return;
   }
 
@@ -498,15 +494,6 @@ function saveConfig() {
   showToast("Lesson setup saved.");
 }
 
-function saveAuthConfig() {
-  authConfig.googleClientId = els.googleClientIdInput.value.trim();
-  authConfig.allowedEmails = parseEmailList(els.allowedEmailsInput.value);
-  localStorage.setItem("authConfig", JSON.stringify(authConfig));
-  hydrateAuthConfigInputs();
-  initializeGoogleSignIn();
-  showToast("Google sign-in setup saved.");
-}
-
 function switchLesson(index) {
   if (index === state.currentLessonIndex) return;
   state.currentLessonIndex = index;
@@ -594,11 +581,8 @@ function signOut() {
 }
 
 function hydrateAuthConfigInputs() {
-  els.googleClientIdInput.value = authConfig.googleClientId;
-  els.allowedEmailsInput.value = authConfig.allowedEmails.join("\n");
   els.adminGoogleClientIdInput.value = authConfig.googleClientId;
   els.adminAllowedEmailsInput.value = authConfig.allowedEmails.join("\n");
-  els.authConfigPanel.hidden = Boolean(siteAuthConfig.googleClientId);
 }
 
 function parseEmailList(value) {
@@ -665,7 +649,6 @@ document.querySelector("#saveConfigBtn").addEventListener("click", saveConfig);
 document.querySelector("#syncClassroomBtn").addEventListener("click", syncClassroom);
 document.querySelector("#openClassroomBtn").addEventListener("click", openClassroom);
 document.querySelector("#switchAccountBtn").addEventListener("click", signOut);
-els.saveAuthConfigBtn.addEventListener("click", saveAuthConfig);
 els.gateModal.addEventListener("cancel", (event) => {
   if (state.activeGate) {
     event.preventDefault();
