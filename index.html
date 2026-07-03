@@ -7,6 +7,37 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
+    <section class="auth-gate" id="authGate" aria-label="Google sign in">
+      <div class="auth-panel">
+        <div class="brand auth-brand">
+          <div class="brand-mark">CG</div>
+          <div>
+            <p>ClassGate</p>
+            <span>Secure Video LMS</span>
+          </div>
+        </div>
+        <div>
+          <p class="eyebrow">Google authentication</p>
+          <h1>Sign in to continue</h1>
+          <p class="auth-copy">Use the Gmail account that has access to the private YouTube videos. YouTube still verifies private video permissions after LMS sign-in.</p>
+        </div>
+        <div class="auth-config" id="authConfigPanel">
+          <label>
+            Google OAuth Client ID
+            <input id="googleClientIdInput" type="text" placeholder="1234567890-abc.apps.googleusercontent.com">
+          </label>
+          <label>
+            Allowed Gmail IDs
+            <textarea id="allowedEmailsInput" rows="4" placeholder="student1@gmail.com&#10;student2@gmail.com"></textarea>
+          </label>
+          <button class="primary-button" id="saveAuthConfigBtn" type="button">Save and load sign-in</button>
+          <p class="label">Leave allowed Gmail IDs blank to allow any verified Google account.</p>
+        </div>
+        <div id="googleButton" class="google-button"></div>
+        <p class="auth-status" id="authStatus">Add your Google OAuth Client ID to enable sign-in on GitHub Pages.</p>
+      </div>
+    </section>
+
     <div class="app-shell">
       <aside class="sidebar" aria-label="Course navigation">
         <div class="brand">
@@ -20,31 +51,11 @@
         <section class="profile-card">
           <span class="label">Signed in</span>
           <strong id="studentEmail">student@school.edu</strong>
-          <button class="ghost-button" id="switchAccountBtn" type="button">Change account</button>
+          <button class="ghost-button" id="switchAccountBtn" type="button">Sign out</button>
         </section>
 
         <nav class="lesson-list" aria-label="Lessons">
-          <button class="lesson-item active" type="button">
-            <span>01</span>
-            <div>
-              <strong>Intro to Motion</strong>
-              <small>Video + checkpoints</small>
-            </div>
-          </button>
-          <button class="lesson-item" type="button">
-            <span>02</span>
-            <div>
-              <strong>Practice Lab</strong>
-              <small>Classroom assignment</small>
-            </div>
-          </button>
-          <button class="lesson-item" type="button">
-            <span>03</span>
-            <div>
-              <strong>Review</strong>
-              <small>Final quiz</small>
-            </div>
-          </button>
+          <div id="lessonList"></div>
         </nav>
       </aside>
 
@@ -178,7 +189,7 @@
         <div class="admin-grid">
           <label>
             YouTube video ID
-            <input id="videoIdInput" type="text" value="M7lc1UVf-VE">
+            <input id="videoIdInput" type="text" value="SxZ4LRkxPyk">
           </label>
           <label>
             Pause interval seconds
@@ -192,6 +203,14 @@
             Classroom coursework ID
             <input id="courseworkIdInput" type="text" value="motion-lab-01">
           </label>
+          <label>
+            Google OAuth Client ID
+            <input id="adminGoogleClientIdInput" type="text" placeholder="1234567890-abc.apps.googleusercontent.com">
+          </label>
+          <label>
+            Allowed Gmail IDs
+            <textarea id="adminAllowedEmailsInput" rows="4" placeholder="student1@gmail.com&#10;student2@gmail.com"></textarea>
+          </label>
         </div>
         <div class="modal-actions">
           <button class="ghost-button" value="cancel" type="submit">Cancel</button>
@@ -204,5 +223,6 @@
 
     <script src="app.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </body>
 </html>
