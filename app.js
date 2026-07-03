@@ -12,10 +12,13 @@ const defaultLessons = [
   createLesson("lesson-3", "Lesson 3", "Private video + checkpoints", "UKq_6n96Z-0")
 ];
 
-const authConfig = readJSON("authConfig", {
-  googleClientId: siteAuthConfig.googleClientId,
-  allowedEmails: siteAuthConfig.allowedEmails
-});
+const savedAuthConfig = readJSON("authConfig", {});
+const authConfig = {
+  googleClientId: siteAuthConfig.googleClientId || savedAuthConfig.googleClientId || "",
+  allowedEmails: siteAuthConfig.allowedEmails.length > 0
+    ? siteAuthConfig.allowedEmails
+    : savedAuthConfig.allowedEmails || []
+};
 
 const state = {
   player: null,
@@ -595,6 +598,7 @@ function hydrateAuthConfigInputs() {
   els.allowedEmailsInput.value = authConfig.allowedEmails.join("\n");
   els.adminGoogleClientIdInput.value = authConfig.googleClientId;
   els.adminAllowedEmailsInput.value = authConfig.allowedEmails.join("\n");
+  els.authConfigPanel.hidden = Boolean(siteAuthConfig.googleClientId);
 }
 
 function parseEmailList(value) {
