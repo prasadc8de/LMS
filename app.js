@@ -1,6 +1,9 @@
 const siteAuthConfig = {
-  googleClientId: "",
-  allowedEmails: []
+  googleClientId: "1310085727-91rrgsf6ck7d03r2fqu7e2ro4orbc4kf.apps.googleusercontent.com",
+  allowedEmails: [
+    "aishurao2021@gmail.com",
+    "prsadboyane@gmail.com"
+  ]
 };
 
 const defaultLessons = [
