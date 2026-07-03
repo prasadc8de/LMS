@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ClassGate LMS</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Course navigation">
+        <div class="brand">
+          <div class="brand-mark">CG</div>
+          <div>
+            <p>ClassGate</p>
+            <span>Video LMS</span>
+          </div>
+        </div>
+
+        <section class="profile-card">
+          <span class="label">Signed in</span>
+          <strong id="studentEmail">student@school.edu</strong>
+          <button class="ghost-button" id="switchAccountBtn" type="button">Change account</button>
+        </section>
+
+        <nav class="lesson-list" aria-label="Lessons">
+          <button class="lesson-item active" type="button">
+            <span>01</span>
+            <div>
+              <strong>Intro to Motion</strong>
+              <small>Video + checkpoints</small>
+            </div>
+          </button>
+          <button class="lesson-item" type="button">
+            <span>02</span>
+            <div>
+              <strong>Practice Lab</strong>
+              <small>Classroom assignment</small>
+            </div>
+          </button>
+          <button class="lesson-item" type="button">
+            <span>03</span>
+            <div>
+              <strong>Review</strong>
+              <small>Final quiz</small>
+            </div>
+          </button>
+        </nav>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Physics 101</p>
+            <h1>Intro to Motion</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="secondary-button" id="syncClassroomBtn" type="button">Sync Classroom</button>
+            <button class="primary-button" id="adminToggleBtn" type="button">Configure</button>
+          </div>
+        </header>
+
+        <section class="learning-layout">
+          <div class="video-column">
+            <section class="player-panel" aria-label="Video lesson">
+              <div class="player-frame">
+                <div id="player"></div>
+                <div class="player-fallback" id="playerFallback">
+                  <div>
+                    <span class="play-symbol">Play</span>
+                    <strong>YouTube player loading</strong>
+                    <p>Use a public/unlisted demo video ID while testing. Private videos require the signed-in Gmail to have YouTube access.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="watch-strip">
+                <div>
+                  <span class="label">Current gate</span>
+                  <strong id="nextGateLabel">Quiz at 00:45</strong>
+                </div>
+                <div>
+                  <span class="label">Progress</span>
+                  <strong id="progressLabel">0 of 3 gates</strong>
+                </div>
+                <div>
+                  <span class="label">Classroom</span>
+                  <strong id="classroomStatusLabel">Connected</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="checkpoint-timeline" aria-label="Lesson checkpoints">
+              <div class="section-heading">
+                <h2>Checkpoints</h2>
+                <span id="intervalLabel">Every 45 seconds</span>
+              </div>
+              <div id="checkpointList" class="checkpoint-list"></div>
+            </section>
+          </div>
+
+          <aside class="right-rail" aria-label="Lesson status">
+            <section class="status-panel">
+              <div class="section-heading">
+                <h2>Learner Status</h2>
+                <span id="completionBadge">In progress</span>
+              </div>
+              <div class="meter" aria-label="Completion progress">
+                <span id="progressMeter"></span>
+              </div>
+              <dl class="stats-grid">
+                <div>
+                  <dt>Watch position</dt>
+                  <dd id="watchPosition">00:00</dd>
+                </div>
+                <div>
+                  <dt>Score</dt>
+                  <dd id="scoreLabel">0%</dd>
+                </div>
+                <div>
+                  <dt>Attempts</dt>
+                  <dd id="attemptsLabel">0</dd>
+                </div>
+                <div>
+                  <dt>Submissions</dt>
+                  <dd id="submissionsLabel">0</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="classroom-panel">
+              <div class="section-heading">
+                <h2>Google Classroom</h2>
+                <span>Mapped</span>
+              </div>
+              <div class="classroom-visual" aria-hidden="true">
+                <div class="doc-card primary"></div>
+                <div class="doc-card secondary"></div>
+                <div class="doc-card muted"></div>
+              </div>
+              <dl class="mapping-list">
+                <div>
+                  <dt>Course ID</dt>
+                  <dd id="courseIdLabel">779920814</dd>
+                </div>
+                <div>
+                  <dt>Coursework ID</dt>
+                  <dd id="courseworkIdLabel">motion-lab-01</dd>
+                </div>
+                <div>
+                  <dt>Required state</dt>
+                  <dd>TURNED_IN</dd>
+                </div>
+              </dl>
+              <button class="secondary-button full-width" id="openClassroomBtn" type="button">Open Assignment</button>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="gateModal" class="modal">
+      <form method="dialog" class="modal-body" id="gateForm">
+        <div class="modal-header">
+          <p class="eyebrow" id="modalType">Quiz checkpoint</p>
+          <h2 id="modalTitle">Checkpoint</h2>
+        </div>
+        <div id="modalContent"></div>
+        <div class="modal-actions" id="modalActions"></div>
+      </form>
+    </dialog>
+
+    <dialog id="adminPanel" class="modal wide-modal">
+      <form method="dialog" class="modal-body">
+        <div class="modal-header">
+          <p class="eyebrow">Teacher setup</p>
+          <h2>Configure lesson gates</h2>
+        </div>
+        <div class="admin-grid">
+          <label>
+            YouTube video ID
+            <input id="videoIdInput" type="text" value="M7lc1UVf-VE">
+          </label>
+          <label>
+            Pause interval seconds
+            <input id="intervalInput" type="number" min="15" step="5" value="45">
+          </label>
+          <label>
+            Classroom course ID
+            <input id="courseIdInput" type="text" value="779920814">
+          </label>
+          <label>
+            Classroom coursework ID
+            <input id="courseworkIdInput" type="text" value="motion-lab-01">
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="ghost-button" value="cancel" type="submit">Cancel</button>
+          <button class="primary-button" id="saveConfigBtn" type="button">Save setup</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+  </body>
+</html>
