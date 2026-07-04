@@ -6,10 +6,129 @@ const siteAuthConfig = {
   ]
 };
 
+const lessonCatalogVersion = "2026-07-04-dark-v2";
+
 const defaultLessons = [
-  createLesson("lesson-1", "Lesson 1", "Private video + checkpoints", "SxZ4LRkxPyk"),
-  createLesson("lesson-2", "Lesson 2", "Private video + checkpoints", "3HAUfCQEJ8g"),
-  createLesson("lesson-3", "Lesson 3", "Private video + checkpoints", "UKq_6n96Z-0")
+  {
+    id: "lesson-1",
+    title: "Lesson 1",
+    subtitle: "Foundation video + concept checks",
+    videoId: "SxZ4LRkxPyk",
+    intervalSeconds: 0,
+    classroom: {
+      courseId: "779920814",
+      courseWorkId: "lesson-1-assignment",
+      alternateLink: "https://classroom.google.com/",
+      requiredSubmissionState: "TURNED_IN"
+    },
+    checkpoints: [
+      {
+        id: "lesson-1-gate-38",
+        time: 38,
+        type: "quiz",
+        title: "Opening Concept",
+        prompt: "What is the best way to use this first section before moving ahead?",
+        options: ["Watch actively and note the main idea", "Skip to the end", "Open another video", "Ignore the example"],
+        answer: "Watch actively and note the main idea"
+      },
+      {
+        id: "lesson-1-gate-82",
+        time: 82,
+        type: "quiz",
+        title: "Key Detail Check",
+        prompt: "When a concept is introduced in a lesson, what should you identify first?",
+        options: ["The definition or rule being used", "Only the background music", "The video resolution", "The upload date"],
+        answer: "The definition or rule being used"
+      },
+      {
+        id: "lesson-1-gate-128",
+        time: 128,
+        type: "classroom",
+        title: "Reflection Upload",
+        prompt: "Upload a short note in Google Classroom summarizing the main takeaway from Lesson 1."
+      }
+    ]
+  },
+  {
+    id: "lesson-2",
+    title: "Lesson 2",
+    subtitle: "Practice video + applied checks",
+    videoId: "3HAUfCQEJ8g",
+    intervalSeconds: 0,
+    classroom: {
+      courseId: "779920814",
+      courseWorkId: "lesson-2-assignment",
+      alternateLink: "https://classroom.google.com/",
+      requiredSubmissionState: "TURNED_IN"
+    },
+    checkpoints: [
+      {
+        id: "lesson-2-gate-52",
+        time: 52,
+        type: "quiz",
+        title: "Process Check",
+        prompt: "What should you do when the video demonstrates a process?",
+        options: ["Follow each step in order", "Memorize only the title", "Pause forever", "Change the playback tab"],
+        answer: "Follow each step in order"
+      },
+      {
+        id: "lesson-2-gate-116",
+        time: 116,
+        type: "classroom",
+        title: "Practice Submission",
+        prompt: "Complete the practice task and submit your work in the mapped Google Classroom assignment."
+      },
+      {
+        id: "lesson-2-gate-174",
+        time: 174,
+        type: "quiz",
+        title: "Application Check",
+        prompt: "After watching a worked example, what is the strongest next step?",
+        options: ["Try a similar example independently", "Close the lesson immediately", "Skip the checkpoint", "Use a different Gmail"],
+        answer: "Try a similar example independently"
+      }
+    ]
+  },
+  {
+    id: "lesson-3",
+    title: "Lesson 3",
+    subtitle: "Review video + readiness checks",
+    videoId: "UKq_6n96Z-0",
+    intervalSeconds: 0,
+    classroom: {
+      courseId: "779920814",
+      courseWorkId: "lesson-3-assignment",
+      alternateLink: "https://classroom.google.com/",
+      requiredSubmissionState: "TURNED_IN"
+    },
+    checkpoints: [
+      {
+        id: "lesson-3-gate-45",
+        time: 45,
+        type: "quiz",
+        title: "Review Focus",
+        prompt: "What is the purpose of a review lesson?",
+        options: ["Connect earlier ideas and check understanding", "Avoid all previous material", "Only test internet speed", "Replace the assignment"],
+        answer: "Connect earlier ideas and check understanding"
+      },
+      {
+        id: "lesson-3-gate-102",
+        time: 102,
+        type: "quiz",
+        title: "Confidence Check",
+        prompt: "If a topic still feels unclear during review, what should you do?",
+        options: ["Rewatch the relevant section and write a question", "Pretend it is complete", "Sign out", "Skip every future checkpoint"],
+        answer: "Rewatch the relevant section and write a question"
+      },
+      {
+        id: "lesson-3-gate-158",
+        time: 158,
+        type: "classroom",
+        title: "Final Evidence Upload",
+        prompt: "Upload your final notes or response in Google Classroom before completing the video series."
+      }
+    ]
+  }
 ];
 
 const savedAuthConfig = readJSON("authConfig", {});
@@ -19,6 +138,7 @@ const authConfig = {
     ? siteAuthConfig.allowedEmails
     : savedAuthConfig.allowedEmails || []
 };
+const shouldResetLessonState = localStorage.getItem("lessonCatalogVersion") !== lessonCatalogVersion;
 
 const state = {
   player: null,
@@ -26,8 +146,8 @@ const state = {
   activeGate: null,
   currentLessonIndex: Number(localStorage.getItem("currentLessonIndex") || 0),
   user: readJSON("signedInUser", null),
-  lessonState: readJSON("lessonState", {}),
-  lessons: readJSON("lessons", defaultLessons)
+  lessonState: shouldResetLessonState ? {} : readJSON("lessonState", {}),
+  lessons: getStoredLessons()
 };
 
 const els = {
@@ -96,49 +216,6 @@ window.onYouTubeIframeAPIReady = () => {
 window.addEventListener("load", () => {
   initializeGoogleSignIn();
 });
-
-function createLesson(id, title, subtitle, videoId) {
-  return {
-    id,
-    title,
-    subtitle,
-    videoId,
-    intervalSeconds: 45,
-    classroom: {
-      courseId: "779920814",
-      courseWorkId: `${id}-assignment`,
-      alternateLink: "https://classroom.google.com/",
-      requiredSubmissionState: "TURNED_IN"
-    },
-    checkpoints: [
-      {
-        id: `${id}-gate-45`,
-        time: 45,
-        type: "quiz",
-        title: "Concept Check",
-        prompt: "Choose the best answer before continuing the lesson.",
-        options: ["I understand this section", "I need to skip ahead", "I have not watched it", "This is unrelated"],
-        answer: "I understand this section"
-      },
-      {
-        id: `${id}-gate-90`,
-        time: 90,
-        type: "classroom",
-        title: "Classroom Upload",
-        prompt: "Open the mapped Google Classroom assignment and submit the requested material."
-      },
-      {
-        id: `${id}-gate-135`,
-        time: 135,
-        type: "quiz",
-        title: "Readiness Check",
-        prompt: "What should you do after completing this checkpoint?",
-        options: ["Resume the lesson", "Close the browser", "Use another Gmail", "Ignore the assignment"],
-        answer: "Resume the lesson"
-      }
-    ]
-  };
-}
 
 function initializeGoogleSignIn() {
   if (!authConfig.googleClientId) {
@@ -400,7 +477,7 @@ function renderLessonList() {
 function renderCheckpoints() {
   const lesson = getCurrentLesson();
   const progress = getCurrentProgress();
-  els.intervalLabel.textContent = `Every ${lesson.intervalSeconds} seconds`;
+  els.intervalLabel.textContent = "Custom timestamps";
   els.checkpointList.innerHTML = lesson.checkpoints.map((gate) => {
     const completed = progress.completed.includes(gate.id);
     const active = state.activeGate === gate.id;
@@ -466,8 +543,8 @@ function saveConfig() {
     return;
   }
 
-  if (!Number.isFinite(nextInterval) || nextInterval < 15 || nextInterval > 900) {
-    showToast("Use an interval between 15 and 900 seconds.");
+  if (!Number.isFinite(nextInterval) || nextInterval < 0 || (nextInterval > 0 && nextInterval < 15) || nextInterval > 900) {
+    showToast("Use 0 for custom timestamps, or an interval between 15 and 900 seconds.");
     return;
   }
 
@@ -514,6 +591,7 @@ function switchLesson(index) {
 }
 
 function rebuildCheckpoints(lesson) {
+  if (!lesson.intervalSeconds) return;
   lesson.checkpoints = lesson.checkpoints.map((gate, index) => {
     const time = lesson.intervalSeconds * (index + 1);
     return {
@@ -557,6 +635,7 @@ function saveLessonState() {
 
 function saveLessons() {
   localStorage.setItem("lessons", JSON.stringify(state.lessons));
+  localStorage.setItem("lessonCatalogVersion", lessonCatalogVersion);
 }
 
 function openClassroom() {
@@ -583,6 +662,17 @@ function signOut() {
 function hydrateAuthConfigInputs() {
   els.adminGoogleClientIdInput.value = authConfig.googleClientId;
   els.adminAllowedEmailsInput.value = authConfig.allowedEmails.join("\n");
+}
+
+function getStoredLessons() {
+  if (shouldResetLessonState) {
+    localStorage.setItem("lessons", JSON.stringify(defaultLessons));
+    localStorage.setItem("lessonCatalogVersion", lessonCatalogVersion);
+    localStorage.removeItem("lessonState");
+    return defaultLessons;
+  }
+
+  return readJSON("lessons", defaultLessons);
 }
 
 function parseEmailList(value) {

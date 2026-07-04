@@ -1,17 +1,18 @@
 :root {
-  --primary: #023047;
+  --primary: #020712;
   --secondary: #219ebc;
-  --primary-900: #061f2e;
-  --primary-800: #082f44;
-  --secondary-100: #e8f6fa;
-  --secondary-200: #cfeaf2;
-  --ink: #132532;
-  --muted: #637888;
-  --line: #d8e5eb;
-  --surface: #ffffff;
-  --wash: #f5f9fb;
-  --shadow: 0 18px 48px rgba(2, 48, 71, 0.11);
-  --focus: 0 0 0 3px rgba(33, 158, 188, 0.24);
+  --primary-900: #00040a;
+  --primary-800: #07111f;
+  --secondary-100: rgba(33, 158, 188, 0.13);
+  --secondary-200: rgba(33, 158, 188, 0.28);
+  --ink: #e8f4f8;
+  --muted: #8da5b2;
+  --line: rgba(142, 202, 230, 0.16);
+  --surface: #0a1422;
+  --surface-2: #0e1b2c;
+  --wash: #03070d;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+  --focus: 0 0 0 3px rgba(33, 158, 188, 0.32);
 }
 
 * {
@@ -19,7 +20,7 @@
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
@@ -59,7 +60,8 @@ textarea:focus-visible {
   place-items: center;
   padding: 24px;
   background:
-    linear-gradient(135deg, rgba(2, 48, 71, 0.96), rgba(33, 158, 188, 0.8)),
+    radial-gradient(circle at top right, rgba(33, 158, 188, 0.36), transparent 34rem),
+    linear-gradient(135deg, rgba(0, 4, 10, 0.98), rgba(2, 7, 18, 0.94)),
     var(--primary);
 }
 
@@ -75,7 +77,7 @@ textarea:focus-visible {
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 8px;
   color: #fff;
-  background: rgba(6, 31, 46, 0.88);
+  background: rgba(7, 17, 31, 0.92);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.24);
 }
 
@@ -120,10 +122,10 @@ textarea:focus-visible {
 .auth-config textarea {
   width: 100%;
   padding: 10px 12px;
-  color: var(--primary);
+  color: var(--ink);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 8px;
-  background: #fff;
+  background: #07111f;
 }
 
 .google-button {
@@ -142,7 +144,7 @@ textarea:focus-visible {
   gap: 24px;
   padding: 24px;
   color: #fff;
-  background: linear-gradient(180deg, var(--primary-900), var(--primary));
+  background: linear-gradient(180deg, #00040a, #07111f);
 }
 
 .brand,
@@ -193,7 +195,7 @@ textarea:focus-visible {
   padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.045);
 }
 
 .label,
@@ -274,13 +276,13 @@ p {
 
 h1 {
   margin-bottom: 0;
-  color: var(--primary);
+  color: #f4fbfd;
   font-size: clamp(1.55rem, 3vw, 2.25rem);
 }
 
 h2 {
   margin-bottom: 0;
-  color: var(--primary);
+  color: #f4fbfd;
   font-size: 1rem;
 }
 
@@ -308,12 +310,12 @@ h2 {
 
 .primary-button {
   color: #fff;
-  border: 1px solid var(--primary);
-  background: var(--primary);
+  border: 1px solid rgba(142, 202, 230, 0.22);
+  background: #0d1b2b;
 }
 
 .primary-button:hover {
-  background: var(--primary-800);
+  background: #13263b;
 }
 
 .secondary-button {
@@ -329,7 +331,7 @@ h2 {
 
 .ghost-button {
   color: inherit;
-  border: 1px solid currentColor;
+  border: 1px solid rgba(232, 244, 248, 0.42);
   background: transparent;
 }
 
@@ -361,7 +363,7 @@ h2 {
   position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: var(--primary);
+  background: #000;
 }
 
 .player-frame iframe,
@@ -379,8 +381,8 @@ h2 {
   text-align: center;
   color: #fff;
   background:
-    linear-gradient(135deg, rgba(2, 48, 71, 0.96), rgba(33, 158, 188, 0.72)),
-    linear-gradient(45deg, var(--primary), var(--secondary));
+    radial-gradient(circle at center, rgba(33, 158, 188, 0.34), transparent 21rem),
+    linear-gradient(135deg, #00040a, #0a1422);
 }
 
 .player-fallback.hidden {
@@ -405,7 +407,7 @@ h2 {
   justify-content: space-between;
   gap: 14px;
   padding: 16px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .watch-strip > div {
@@ -415,7 +417,7 @@ h2 {
 .watch-strip strong {
   display: block;
   margin-top: 4px;
-  color: var(--primary);
+  color: #f4fbfd;
 }
 
 .section-heading {
@@ -423,7 +425,7 @@ h2 {
   gap: 12px;
   padding: 16px;
   border-bottom: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface-2);
 }
 
 .section-heading span {
@@ -443,7 +445,7 @@ h2 {
   align-items: center;
   padding: 14px 16px;
   border-bottom: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
 }
 
 .checkpoint:last-child {
@@ -456,14 +458,14 @@ h2 {
   height: 40px;
   place-items: center;
   border-radius: 8px;
-  color: var(--primary);
+  color: #dff7ff;
   font-weight: 900;
   background: var(--secondary-100);
 }
 
 .checkpoint.completed .checkpoint-icon {
   color: #fff;
-  background: var(--primary);
+  background: #142a42;
 }
 
 .checkpoint.active .checkpoint-icon {
@@ -483,7 +485,7 @@ h2 {
 .pill {
   padding: 6px 9px;
   border-radius: 999px;
-  color: var(--primary);
+  color: #dff7ff;
   font-size: 0.72rem;
   font-weight: 900;
   background: var(--secondary-100);
@@ -516,7 +518,7 @@ h2 {
 
 .stats-grid div {
   padding: 14px;
-  background: #fff;
+  background: var(--surface);
 }
 
 dt {
@@ -527,7 +529,7 @@ dt {
 
 dd {
   margin: 4px 0 0;
-  color: var(--primary);
+  color: #f4fbfd;
   font-weight: 900;
 }
 
@@ -546,7 +548,7 @@ dd {
 }
 
 .doc-card.primary {
-  background: var(--primary);
+  background: #111c2c;
 }
 
 .doc-card.secondary {
@@ -589,7 +591,9 @@ dd {
   padding: 0;
   border: 0;
   border-radius: 8px;
-  box-shadow: 0 30px 80px rgba(2, 48, 71, 0.28);
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.52);
 }
 
 .wide-modal {
@@ -597,7 +601,7 @@ dd {
 }
 
 .modal::backdrop {
-  background: rgba(2, 48, 71, 0.58);
+  background: rgba(0, 4, 10, 0.76);
 }
 
 .modal-body {
@@ -631,13 +635,13 @@ dd {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface-2);
   transition: border-color 160ms ease, background-color 160ms ease;
 }
 
 .choice-list label:hover {
   border-color: var(--secondary);
-  background: var(--secondary-100);
+  background: rgba(33, 158, 188, 0.16);
 }
 
 .choice-list input {
@@ -657,10 +661,10 @@ dd {
   width: 100%;
   min-height: 42px;
   padding: 0 12px;
-  color: var(--primary);
+  color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: #07111f;
 }
 
 .admin-grid textarea {
@@ -682,7 +686,7 @@ dd {
   padding: 12px 14px;
   color: #fff;
   border-radius: 8px;
-  background: var(--primary);
+  background: #07111f;
   box-shadow: var(--shadow);
   opacity: 0;
   transform: translateY(12px);
