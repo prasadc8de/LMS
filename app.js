@@ -1,9 +1,13 @@
 const siteAuthConfig = {
   googleClientId: "1310085727-91rrgsf6ck7d03r2fqu7e2ro4orbc4kf.apps.googleusercontent.com",
-  allowedEmails: [
-    "aishurao2021@gmail.com",
-    "prasadboyane@gmail.com"
-  ]
+  allowedEmails: {
+    students: [
+      "aishurao2021@gmail.com"
+    ],
+    teachers: [
+      "prasadboyane@gmail.com"
+    ]
+  }
 };
 
 const classroomTopics = [
@@ -29,7 +33,7 @@ const classroomTopics = [
   },
 ];
 const classroomAssignmentUrl = classroomTopics[0].url;
-const lessonCatalogVersion = "2026-07-15-playlists-v6";
+const lessonCatalogVersion = "2026-07-15-role-schedule-v7";
 
 const taskNotes = [
   "Make videos on every question / concept and upload on YouTube.",
@@ -315,9 +319,7 @@ const defaultLessons = [
 const savedAuthConfig = readJSON("authConfig", {});
 const authConfig = {
   googleClientId: siteAuthConfig.googleClientId || savedAuthConfig.googleClientId || "",
-  allowedEmails: siteAuthConfig.allowedEmails.length > 0
-    ? siteAuthConfig.allowedEmails
-    : savedAuthConfig.allowedEmails || []
+  allowedEmails: normalizeAllowedEmails(siteAuthConfig.allowedEmails || savedAuthConfig.allowedEmails || {})
 };
 const shouldResetLessonState = localStorage.getItem("lessonCatalogVersion") !== lessonCatalogVersion;
 
@@ -329,7 +331,8 @@ const state = {
   user: readJSON("signedInUser", null),
   lessonState: shouldResetLessonState ? {} : readJSON("lessonState", {}),
   lessons: getStoredLessons(),
-  openPlaylists: readJSON("openPlaylists", { python: true })
+  openPlaylists: readJSON("openPlaylists", { python: true }),
+  lessonSchedule: readJSON("lessonSchedule", {})
 };
 
 const els = {
@@ -358,6 +361,14 @@ const els = {
   notesBadge: document.querySelector("#notesBadge"),
   notesList: document.querySelector("#notesList"),
   openAssignmentBtn: document.querySelector("#openAssignmentBtn"),
+  scheduleLessonBtn: document.querySelector("#scheduleLessonBtn"),
+  scheduleModal: document.querySelector("#scheduleModal"),
+  scheduleLessonSelect: document.querySelector("#scheduleLessonSelect"),
+  scheduleDateInput: document.querySelector("#scheduleDateInput"),
+  scheduleTimeInput: document.querySelector("#scheduleTimeInput"),
+  scheduleStatusText: document.querySelector("#scheduleStatusText"),
+  saveScheduleBtn: document.querySelector("#saveScheduleBtn"),
+  clearScheduleBtn: document.querySelector("#clearScheduleBtn"),
   toast: document.querySelector("#toast")
 };
 
@@ -366,13 +377,17 @@ renderAuthState();
 render();
 
 const youtubeApiTimer = window.setTimeout(() => {
-  if (!state.player) {
+  if (!state.player && getCurrentLesson()) {
     showToast("YouTube player is taking longer than expected. Check network access or the video ID.");
   }
 }, 9000);
 
 window.onYouTubeIframeAPIReady = () => {
   const lesson = getCurrentLesson();
+  if (!lesson) {
+    renderEmptyLessonState();
+    return;
+  }
   state.player = new YT.Player("player", {
     videoId: lesson.videoId,
     playerVars: {
@@ -427,8 +442,8 @@ function handleCredentialResponse(response) {
   }
 
   const email = profile.email.toLowerCase();
-  const allowed = authConfig.allowedEmails.map((item) => item.toLowerCase());
-  if (allowed.length > 0 && !allowed.includes(email)) {
+  const role = getUserRole(email);
+  if (!role) {
     showAuthError(`${profile.email} is not enrolled in this LMS.`);
     return;
   }
@@ -436,22 +451,37 @@ function handleCredentialResponse(response) {
   state.user = {
     email: profile.email,
     name: profile.name || profile.email,
-    picture: profile.picture || ""
+    picture: profile.picture || "",
+    role
   };
   localStorage.setItem("signedInUser", JSON.stringify(state.user));
+  normalizeLessonIndex();
   renderAuthState();
+  render();
   showToast(`Signed in as ${state.user.email}`);
 }
 
 function renderAuthState() {
   if (state.user?.email) {
+    state.user.role = state.user.role || getUserRole(state.user.email);
+    if (!state.user.role) {
+      state.user = null;
+      localStorage.removeItem("signedInUser");
+      els.authGate.classList.remove("hidden");
+      els.studentEmail.textContent = "Not signed in";
+      els.scheduleLessonBtn.classList.add("hidden");
+      return;
+    }
+
     els.authGate.classList.add("hidden");
-    els.studentEmail.textContent = state.user.email;
+    els.studentEmail.textContent = `${state.user.email} (${getRoleLabel()})`;
+    els.scheduleLessonBtn.classList.toggle("hidden", !isTeacher());
     return;
   }
 
   els.authGate.classList.remove("hidden");
   els.studentEmail.textContent = "Not signed in";
+  els.scheduleLessonBtn.classList.add("hidden");
 }
 
 function showAuthError(message) {
@@ -470,6 +500,8 @@ function onPlayerReady(event) {
 }
 
 function onPlayerStateChange(event) {
+  if (!state.player) return;
+
   if (!state.user?.email) {
     state.player.pauseVideo();
     renderAuthState();
@@ -504,6 +536,7 @@ function tickPlayback() {
   if (!state.player || typeof state.player.getCurrentTime !== "function") return;
 
   const lesson = getCurrentLesson();
+  if (!lesson) return;
   const progress = getCurrentProgress();
   const currentTime = Math.floor(state.player.getCurrentTime());
   progress.lastTime = currentTime;
@@ -618,11 +651,17 @@ function completeGate(gate) {
   saveLessonState();
   els.gateModal.close();
   render();
-  state.player.playVideo();
+  if (state.player) {
+    state.player.playVideo();
+  }
 }
 
 function render() {
   renderLessonList();
+  if (!getCurrentLesson()) {
+    renderEmptyLessonState();
+    return;
+  }
   renderCheckpoints();
   renderStats();
   renderLessonNotes();
@@ -630,8 +669,7 @@ function render() {
 
 function renderLessonList() {
   els.lessonList.innerHTML = classroomTopics.map((playlist) => {
-    const lessons = state.lessons
-      .map((lesson, index) => ({ lesson, index }))
+    const lessons = getVisibleLessonEntries()
       .filter(({ lesson }) => lesson.playlistId === playlist.id);
     const isOpen = Boolean(state.openPlaylists[playlist.id]);
 
@@ -650,7 +688,7 @@ function renderLessonList() {
               <span>${String(lessonIndex + 1).padStart(2, "0")}</span>
               <div>
                 <strong>${escapeHTML(lesson.title)}</strong>
-                <small>${escapeHTML(lesson.subtitle)}</small>
+                <small>${escapeHTML(getLessonMeta(lesson))}</small>
               </div>
             </button>
           `).join("") : `
@@ -687,6 +725,29 @@ function getPlaylistUrl(playlistId) {
 
 function getLessonAssignmentUrl(lesson) {
   return lesson.assignmentUrl || getPlaylistUrl(lesson.playlistId);
+}
+
+function getVisibleLessonEntries() {
+  return state.lessons
+    .map((lesson, index) => ({ lesson, index }))
+    .filter(({ lesson }) => canAccessLesson(lesson));
+}
+
+function canAccessLesson(lesson) {
+  if (isTeacher()) return true;
+  return getPublishedAt(lesson.id) <= Date.now();
+}
+
+function getLessonMeta(lesson) {
+  if (!isTeacher()) return lesson.subtitle;
+  const publishedAt = getPublishedAt(lesson.id);
+  if (publishedAt <= Date.now()) {
+    return `Visible • ${formatSchedule(publishedAt)}`;
+  }
+  if (state.lessonSchedule[lesson.id]) {
+    return `Scheduled • ${formatSchedule(publishedAt)}`;
+  }
+  return "Hidden from students";
 }
 
 function renderCheckpoints() {
@@ -738,8 +799,34 @@ function renderLessonNotes() {
   els.notesList.innerHTML = lesson.notes.map((note) => `<li>${escapeHTML(note)}</li>`).join("");
 }
 
+function renderEmptyLessonState() {
+  document.querySelector(".topbar h1").textContent = "No lessons posted yet";
+  document.querySelector(".topbar .eyebrow").textContent = isTeacher() ? "Teacher Schedule" : "Student View";
+  els.playerFallback.classList.remove("hidden");
+  els.playerFallback.innerHTML = `
+    <div>
+      <span class="play-symbol">Wait</span>
+      <strong>No lessons available</strong>
+      <p>${isTeacher() ? "Use Schedule Lesson to post videos for students." : "Your teacher has not posted lessons yet."}</p>
+    </div>
+  `;
+  els.checkpointList.innerHTML = "";
+  els.progressLabel.textContent = "0 of 0 gates";
+  els.progressMeter.style.width = "0%";
+  els.completionBadge.textContent = "Waiting";
+  els.watchPosition.textContent = "00:00";
+  els.scoreLabel.textContent = "0%";
+  els.attemptsLabel.textContent = "0";
+  els.submissionsLabel.textContent = "0";
+  els.nextGateLabel.textContent = "No posted lesson";
+  els.assignmentStatusLabel.textContent = "Hidden";
+  els.notesBadge.textContent = "Not posted";
+  els.notesList.innerHTML = "<li>Lessons become visible after a teacher schedules a post time.</li>";
+}
+
 function switchLesson(index) {
   if (index === state.currentLessonIndex) return;
+  if (!canAccessLesson(state.lessons[index])) return;
   state.currentLessonIndex = index;
   localStorage.setItem("currentLessonIndex", String(index));
   state.activeGate = null;
@@ -763,11 +850,14 @@ function resetCurrentLessonProgress() {
 }
 
 function getCurrentLesson() {
-  return state.lessons[state.currentLessonIndex];
+  normalizeLessonIndex();
+  const lesson = state.lessons[state.currentLessonIndex];
+  return lesson && canAccessLesson(lesson) ? lesson : undefined;
 }
 
 function getCurrentProgress() {
   const lesson = getCurrentLesson();
+  if (!lesson) return createEmptyProgress();
   if (!state.lessonState[lesson.id]) {
     state.lessonState[lesson.id] = createEmptyProgress();
   }
@@ -791,6 +881,52 @@ function saveLessonState() {
 function saveLessons() {
   localStorage.setItem("lessons", JSON.stringify(state.lessons));
   localStorage.setItem("lessonCatalogVersion", lessonCatalogVersion);
+}
+
+function saveLessonSchedule() {
+  localStorage.setItem("lessonSchedule", JSON.stringify(state.lessonSchedule));
+}
+
+function getPublishedAt(lessonId) {
+  const value = state.lessonSchedule[lessonId];
+  return value ? Number(value) : Number.POSITIVE_INFINITY;
+}
+
+function formatSchedule(timestamp) {
+  if (!Number.isFinite(timestamp)) return "Not scheduled";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(new Date(timestamp));
+}
+
+function normalizeAllowedEmails(value) {
+  if (Array.isArray(value)) {
+    return {
+      students: value.map((email) => email.toLowerCase()),
+      teachers: []
+    };
+  }
+
+  return {
+    students: (value.students || []).map((email) => email.toLowerCase()),
+    teachers: (value.teachers || []).map((email) => email.toLowerCase())
+  };
+}
+
+function getUserRole(email) {
+  const normalizedEmail = email.toLowerCase();
+  if (authConfig.allowedEmails.teachers.includes(normalizedEmail)) return "teacher";
+  if (authConfig.allowedEmails.students.includes(normalizedEmail)) return "student";
+  return "";
+}
+
+function isTeacher() {
+  return state.user?.role === "teacher";
+}
+
+function getRoleLabel() {
+  return isTeacher() ? "Teacher" : "Student";
 }
 
 function buildTopicLessons(config) {
@@ -895,6 +1031,75 @@ function openAssignment() {
   window.open(getLessonAssignmentUrl(getCurrentLesson()), "_blank", "noopener,noreferrer");
 }
 
+function openScheduleModal() {
+  if (!isTeacher()) return;
+  renderScheduleOptions();
+  const lesson = getCurrentLesson() || state.lessons[0];
+  els.scheduleLessonSelect.value = lesson.id;
+  fillScheduleInputs(lesson.id);
+  els.scheduleModal.showModal();
+}
+
+function renderScheduleOptions() {
+  els.scheduleLessonSelect.innerHTML = state.lessons.map((lesson) => `
+    <option value="${escapeHTML(lesson.id)}">${escapeHTML(getPlaylistTitle(lesson.playlistId))} / ${escapeHTML(lesson.title)}</option>
+  `).join("");
+}
+
+function fillScheduleInputs(lessonId) {
+  const timestamp = getPublishedAt(lessonId);
+  if (!Number.isFinite(timestamp)) {
+    els.scheduleDateInput.value = "";
+    els.scheduleTimeInput.value = "";
+    els.scheduleStatusText.textContent = "This lesson is hidden from students.";
+    return;
+  }
+
+  const date = new Date(timestamp);
+  els.scheduleDateInput.value = toDateInputValue(date);
+  els.scheduleTimeInput.value = toTimeInputValue(date);
+  els.scheduleStatusText.textContent = `Students can see this lesson from ${formatSchedule(timestamp)}.`;
+}
+
+function saveScheduleFromModal() {
+  const lessonId = els.scheduleLessonSelect.value;
+  if (!lessonId || !els.scheduleDateInput.value || !els.scheduleTimeInput.value) {
+    showToast("Choose a lesson, date, and time.");
+    return;
+  }
+
+  const timestamp = new Date(`${els.scheduleDateInput.value}T${els.scheduleTimeInput.value}`).getTime();
+  if (!Number.isFinite(timestamp)) {
+    showToast("Choose a valid schedule time.");
+    return;
+  }
+
+  state.lessonSchedule[lessonId] = timestamp;
+  saveLessonSchedule();
+  normalizeLessonIndex();
+  render();
+  els.scheduleModal.close();
+  showToast("Lesson schedule saved.");
+}
+
+function clearScheduleFromModal() {
+  const lessonId = els.scheduleLessonSelect.value;
+  delete state.lessonSchedule[lessonId];
+  saveLessonSchedule();
+  normalizeLessonIndex();
+  render();
+  els.scheduleModal.close();
+  showToast("Lesson hidden from students.");
+}
+
+function toDateInputValue(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function toTimeInputValue(date) {
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
 function signOut() {
   state.user = null;
   localStorage.removeItem("signedInUser");
@@ -932,8 +1137,16 @@ function decodeJwt(token) {
 }
 
 function normalizeLessonIndex() {
-  if (!Number.isInteger(state.currentLessonIndex) || !state.lessons[state.currentLessonIndex]) {
-    state.currentLessonIndex = 0;
+  if (state.user?.email && !state.user.role) {
+    state.user.role = getUserRole(state.user.email);
+  }
+
+  const visibleEntries = getVisibleLessonEntries();
+  const currentIsVisible = visibleEntries.some(({ index }) => index === state.currentLessonIndex);
+
+  if (!Number.isInteger(state.currentLessonIndex) || !state.lessons[state.currentLessonIndex] || !currentIsVisible) {
+    state.currentLessonIndex = visibleEntries[0]?.index ?? 0;
+    localStorage.setItem("currentLessonIndex", String(state.currentLessonIndex));
   }
 }
 
@@ -973,6 +1186,10 @@ function formatMinutes(seconds) {
 
 document.querySelector("#openAssignmentBtn").addEventListener("click", openAssignment);
 document.querySelector("#switchAccountBtn").addEventListener("click", signOut);
+document.querySelector("#scheduleLessonBtn").addEventListener("click", openScheduleModal);
+document.querySelector("#scheduleLessonSelect").addEventListener("change", (event) => fillScheduleInputs(event.target.value));
+document.querySelector("#saveScheduleBtn").addEventListener("click", saveScheduleFromModal);
+document.querySelector("#clearScheduleBtn").addEventListener("click", clearScheduleFromModal);
 els.gateModal.addEventListener("cancel", (event) => {
   if (state.activeGate) {
     event.preventDefault();

@@ -55,6 +55,9 @@
             <p class="eyebrow">Physics 101</p>
             <h1>Intro to Motion</h1>
           </div>
+          <div class="topbar-actions">
+            <button class="secondary-button hidden" id="scheduleLessonBtn" type="button">Schedule Lesson</button>
+          </div>
         </header>
 
         <section class="learning-layout">
@@ -147,6 +150,34 @@
         </div>
         <div id="modalContent"></div>
         <div class="modal-actions" id="modalActions"></div>
+      </form>
+    </dialog>
+
+    <dialog id="scheduleModal" class="modal">
+      <form method="dialog" class="modal-body" id="scheduleForm">
+        <div class="modal-header">
+          <p class="eyebrow">Teacher tools</p>
+          <h2>Schedule Lesson</h2>
+        </div>
+        <div class="schedule-grid">
+          <label>
+            Lesson
+            <select id="scheduleLessonSelect"></select>
+          </label>
+          <label>
+            Post date
+            <input id="scheduleDateInput" type="date">
+          </label>
+          <label>
+            Post time
+            <input id="scheduleTimeInput" type="time">
+          </label>
+        </div>
+        <p class="assignment-callout" id="scheduleStatusText">Students can see a lesson only after its post time.</p>
+        <div class="modal-actions">
+          <button class="ghost-button" id="clearScheduleBtn" type="button">Hide lesson</button>
+          <button class="secondary-button" id="saveScheduleBtn" type="button">Post schedule</button>
+        </div>
       </form>
     </dialog>
 

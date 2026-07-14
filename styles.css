@@ -120,6 +120,10 @@ textarea:focus-visible {
   display: none;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .auth-panel {
   display: grid;
   width: min(480px, 100%);
@@ -876,8 +880,22 @@ dd {
   gap: 14px;
 }
 
+.schedule-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.schedule-grid label {
+  display: grid;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .admin-grid input,
-.admin-grid textarea {
+.admin-grid textarea,
+.schedule-grid input,
+.schedule-grid select {
   width: 100%;
   min-height: 42px;
   padding: 0 12px;
