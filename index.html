@@ -53,10 +53,6 @@
             <p class="eyebrow">Physics 101</p>
             <h1>Intro to Motion</h1>
           </div>
-          <div class="topbar-actions">
-            <button class="secondary-button" id="syncClassroomBtn" type="button">Sync Classroom</button>
-            <button class="primary-button" id="adminToggleBtn" type="button">Configure</button>
-          </div>
         </header>
 
         <section class="learning-layout">
@@ -82,8 +78,8 @@
                   <strong id="progressLabel">0 of 3 gates</strong>
                 </div>
                 <div>
-                  <span class="label">Classroom</span>
-                  <strong id="classroomStatusLabel">Connected</strong>
+                  <span class="label">Assignment</span>
+                  <strong id="assignmentStatusLabel">Ready</strong>
                 </div>
               </div>
             </section>
@@ -126,31 +122,15 @@
               </dl>
             </section>
 
-            <section class="classroom-panel">
+            <section class="notes-panel">
               <div class="section-heading">
-                <h2>Google Classroom</h2>
-                <span>Mapped</span>
+                <h2>Lesson Notes</h2>
+                <span id="notesBadge">Study guide</span>
               </div>
-              <div class="classroom-visual" aria-hidden="true">
-                <div class="doc-card primary"></div>
-                <div class="doc-card secondary"></div>
-                <div class="doc-card muted"></div>
+              <div class="notes-body">
+                <ul id="notesList" class="notes-list"></ul>
               </div>
-              <dl class="mapping-list">
-                <div>
-                  <dt>Course ID</dt>
-                  <dd id="courseIdLabel">779920814</dd>
-                </div>
-                <div>
-                  <dt>Coursework ID</dt>
-                  <dd id="courseworkIdLabel">motion-lab-01</dd>
-                </div>
-                <div>
-                  <dt>Required state</dt>
-                  <dd>TURNED_IN</dd>
-                </div>
-              </dl>
-              <button class="secondary-button full-width" id="openClassroomBtn" type="button">Open Assignment</button>
+              <button class="secondary-button full-width" id="openAssignmentBtn" type="button">Open Assignment</button>
             </section>
           </aside>
         </section>
@@ -165,45 +145,6 @@
         </div>
         <div id="modalContent"></div>
         <div class="modal-actions" id="modalActions"></div>
-      </form>
-    </dialog>
-
-    <dialog id="adminPanel" class="modal wide-modal">
-      <form method="dialog" class="modal-body">
-        <div class="modal-header">
-          <p class="eyebrow">Teacher setup</p>
-          <h2>Configure lesson gates</h2>
-        </div>
-        <div class="admin-grid">
-          <label>
-            YouTube video ID
-            <input id="videoIdInput" type="text" value="SxZ4LRkxPyk">
-          </label>
-          <label>
-            Pause interval seconds
-            <input id="intervalInput" type="number" min="15" step="5" value="45">
-          </label>
-          <label>
-            Classroom course ID
-            <input id="courseIdInput" type="text" value="779920814">
-          </label>
-          <label>
-            Classroom coursework ID
-            <input id="courseworkIdInput" type="text" value="motion-lab-01">
-          </label>
-          <label>
-            Google OAuth Client ID
-            <input id="adminGoogleClientIdInput" type="text" placeholder="1234567890-abc.apps.googleusercontent.com">
-          </label>
-          <label>
-            Allowed Gmail IDs
-            <textarea id="adminAllowedEmailsInput" rows="4" placeholder="student1@gmail.com&#10;student2@gmail.com"></textarea>
-          </label>
-        </div>
-        <div class="modal-actions">
-          <button class="ghost-button" value="cancel" type="submit">Cancel</button>
-          <button class="primary-button" id="saveConfigBtn" type="button">Save setup</button>
-        </div>
       </form>
     </dialog>
 

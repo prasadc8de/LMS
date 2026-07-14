@@ -6,7 +6,8 @@ const siteAuthConfig = {
   ]
 };
 
-const lessonCatalogVersion = "2026-07-04-dark-v2";
+const classroomAssignmentUrl = "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2NTA2OTY2";
+const lessonCatalogVersion = "2026-07-15-student-lessons-v3";
 
 const defaultLessons = [
   {
@@ -15,12 +16,13 @@ const defaultLessons = [
     subtitle: "Foundation video + concept checks",
     videoId: "SxZ4LRkxPyk",
     intervalSeconds: 0,
-    classroom: {
-      courseId: "779920814",
-      courseWorkId: "lesson-1-assignment",
-      alternateLink: "https://classroom.google.com/",
-      requiredSubmissionState: "TURNED_IN"
-    },
+    assignmentTitle: "Lesson 1 assignment",
+    assignmentUrl: classroomAssignmentUrl,
+    notes: [
+      "Watch for the first core idea introduced in the lesson.",
+      "Pause after each example and write one sentence in your own words.",
+      "Use the assignment link after the checkpoint to submit your short reflection."
+    ],
     checkpoints: [
       {
         id: "lesson-1-gate-38",
@@ -43,7 +45,7 @@ const defaultLessons = [
       {
         id: "lesson-1-gate-128",
         time: 128,
-        type: "classroom",
+        type: "assignment",
         title: "Reflection Upload",
         prompt: "Upload a short note in Google Classroom summarizing the main takeaway from Lesson 1."
       }
@@ -55,12 +57,13 @@ const defaultLessons = [
     subtitle: "Practice video + applied checks",
     videoId: "3HAUfCQEJ8g",
     intervalSeconds: 0,
-    classroom: {
-      courseId: "779920814",
-      courseWorkId: "lesson-2-assignment",
-      alternateLink: "https://classroom.google.com/",
-      requiredSubmissionState: "TURNED_IN"
-    },
+    assignmentTitle: "Lesson 2 assignment",
+    assignmentUrl: classroomAssignmentUrl,
+    notes: [
+      "Focus on the steps shown in the worked example.",
+      "Keep a note of where you feel unsure so you can revisit that timestamp.",
+      "Submit your practice response through the assignment link."
+    ],
     checkpoints: [
       {
         id: "lesson-2-gate-52",
@@ -74,7 +77,7 @@ const defaultLessons = [
       {
         id: "lesson-2-gate-116",
         time: 116,
-        type: "classroom",
+        type: "assignment",
         title: "Practice Submission",
         prompt: "Complete the practice task and submit your work in the mapped Google Classroom assignment."
       },
@@ -95,12 +98,13 @@ const defaultLessons = [
     subtitle: "Review video + readiness checks",
     videoId: "UKq_6n96Z-0",
     intervalSeconds: 0,
-    classroom: {
-      courseId: "779920814",
-      courseWorkId: "lesson-3-assignment",
-      alternateLink: "https://classroom.google.com/",
-      requiredSubmissionState: "TURNED_IN"
-    },
+    assignmentTitle: "Lesson 3 assignment",
+    assignmentUrl: classroomAssignmentUrl,
+    notes: [
+      "Use this lesson to connect the earlier ideas.",
+      "Rewatch any section where your answer feels uncertain.",
+      "Upload final notes or evidence of completion using the assignment link."
+    ],
     checkpoints: [
       {
         id: "lesson-3-gate-45",
@@ -123,7 +127,7 @@ const defaultLessons = [
       {
         id: "lesson-3-gate-158",
         time: 158,
-        type: "classroom",
+        type: "assignment",
         title: "Final Evidence Upload",
         prompt: "Upload your final notes or response in Google Classroom before completing the video series."
       }
@@ -154,8 +158,6 @@ const els = {
   authGate: document.querySelector("#authGate"),
   authStatus: document.querySelector("#authStatus"),
   googleButton: document.querySelector("#googleButton"),
-  adminGoogleClientIdInput: document.querySelector("#adminGoogleClientIdInput"),
-  adminAllowedEmailsInput: document.querySelector("#adminAllowedEmailsInput"),
   lessonList: document.querySelector("#lessonList"),
   studentEmail: document.querySelector("#studentEmail"),
   checkpointList: document.querySelector("#checkpointList"),
@@ -168,25 +170,20 @@ const els = {
   attemptsLabel: document.querySelector("#attemptsLabel"),
   submissionsLabel: document.querySelector("#submissionsLabel"),
   nextGateLabel: document.querySelector("#nextGateLabel"),
-  classroomStatusLabel: document.querySelector("#classroomStatusLabel"),
+  assignmentStatusLabel: document.querySelector("#assignmentStatusLabel"),
   gateModal: document.querySelector("#gateModal"),
   modalType: document.querySelector("#modalType"),
   modalTitle: document.querySelector("#modalTitle"),
   modalContent: document.querySelector("#modalContent"),
   modalActions: document.querySelector("#modalActions"),
-  adminPanel: document.querySelector("#adminPanel"),
   playerFallback: document.querySelector("#playerFallback"),
-  videoIdInput: document.querySelector("#videoIdInput"),
-  intervalInput: document.querySelector("#intervalInput"),
-  courseIdInput: document.querySelector("#courseIdInput"),
-  courseworkIdInput: document.querySelector("#courseworkIdInput"),
-  courseIdLabel: document.querySelector("#courseIdLabel"),
-  courseworkIdLabel: document.querySelector("#courseworkIdLabel"),
+  notesBadge: document.querySelector("#notesBadge"),
+  notesList: document.querySelector("#notesList"),
+  openAssignmentBtn: document.querySelector("#openAssignmentBtn"),
   toast: document.querySelector("#toast")
 };
 
 normalizeLessonIndex();
-hydrateAuthConfigInputs();
 renderAuthState();
 render();
 
@@ -365,7 +362,7 @@ function openGate(gate) {
   if (gate.type === "quiz") {
     renderQuizGate(gate);
   } else {
-    renderClassroomGate(gate);
+    renderAssignmentGate(gate);
   }
 
   els.gateModal.showModal();
@@ -412,30 +409,25 @@ function renderQuizGate(gate) {
   });
 }
 
-function renderClassroomGate(gate) {
+function renderAssignmentGate(gate) {
   const lesson = getCurrentLesson();
-  els.modalType.textContent = "Google Classroom checkpoint";
+  els.modalType.textContent = "Assignment checkpoint";
   els.modalTitle.textContent = gate.title;
   els.modalContent.innerHTML = `
     <p>${escapeHTML(gate.prompt)}</p>
-    <dl class="mapping-list">
-      <div><dt>Course ID</dt><dd>${escapeHTML(lesson.classroom.courseId)}</dd></div>
-      <div><dt>Coursework ID</dt><dd>${escapeHTML(lesson.classroom.courseWorkId)}</dd></div>
-      <div><dt>Required status</dt><dd>${escapeHTML(lesson.classroom.requiredSubmissionState)}</dd></div>
-    </dl>
-    <p class="label">MVP integration: replace this status check with Classroom studentSubmissions.list/get on your backend.</p>
+    <p class="assignment-callout">${escapeHTML(lesson.assignmentTitle)} opens in Google Classroom. Return here after you submit.</p>
   `;
   els.modalActions.innerHTML = `
-    <button class="ghost-button" id="openClassroomModalBtn" type="button">Open Classroom</button>
+    <button class="ghost-button" id="openAssignmentModalBtn" type="button">Open Assignment</button>
     <button class="secondary-button" id="checkSubmissionBtn" type="button">Check submission</button>
   `;
 
-  document.querySelector("#openClassroomModalBtn").addEventListener("click", openClassroom);
+  document.querySelector("#openAssignmentModalBtn").addEventListener("click", openAssignment);
   document.querySelector("#checkSubmissionBtn").addEventListener("click", () => {
     const progress = getCurrentProgress();
     progress.submissions += 1;
     completeGate(gate);
-    showToast("Classroom submission found. Resuming the video.");
+    showToast("Assignment marked submitted. Resuming the video.");
   });
 }
 
@@ -455,7 +447,7 @@ function render() {
   renderLessonList();
   renderCheckpoints();
   renderStats();
-  renderMapping();
+  renderLessonNotes();
 }
 
 function renderLessonList() {
@@ -481,13 +473,13 @@ function renderCheckpoints() {
   els.checkpointList.innerHTML = lesson.checkpoints.map((gate) => {
     const completed = progress.completed.includes(gate.id);
     const active = state.activeGate === gate.id;
-    const status = completed ? "Done" : active ? "Paused" : gate.type === "quiz" ? "Quiz" : "Classroom";
+    const status = completed ? "Done" : active ? "Paused" : gate.type === "quiz" ? "Quiz" : "Assignment";
     return `
       <article class="checkpoint ${completed ? "completed" : ""} ${active ? "active" : ""}">
         <div class="checkpoint-icon">${completed ? "OK" : formatMinutes(gate.time)}</div>
         <div>
           <strong>${escapeHTML(gate.title)}</strong>
-          <small>${gate.type === "quiz" ? "Answer required to resume" : "Classroom submission required"}</small>
+          <small>${gate.type === "quiz" ? "Answer required to resume" : "Assignment submission required"}</small>
         </div>
         <span class="pill">${status}</span>
       </article>
@@ -504,7 +496,7 @@ function renderStats() {
   const score = progress.attempts ? Math.round((progress.correct / progress.attempts) * 100) : 0;
   const nextGate = lesson.checkpoints.find((gate) => !progress.completed.includes(gate.id));
 
-  document.querySelector("h1").textContent = lesson.title;
+  document.querySelector(".topbar h1").textContent = lesson.title;
   document.querySelector(".topbar .eyebrow").textContent = "Private Video Series";
   els.progressLabel.textContent = `${completeCount} of ${total} gates`;
   els.progressMeter.style.width = `${percent}%`;
@@ -513,62 +505,14 @@ function renderStats() {
   els.scoreLabel.textContent = `${score}%`;
   els.attemptsLabel.textContent = String(progress.attempts);
   els.submissionsLabel.textContent = String(progress.submissions);
-  els.nextGateLabel.textContent = nextGate ? `${nextGate.type === "quiz" ? "Quiz" : "Classroom"} at ${formatTime(nextGate.time)}` : "All gates done";
-  els.classroomStatusLabel.textContent = "Mapped";
+  els.nextGateLabel.textContent = nextGate ? `${nextGate.type === "quiz" ? "Quiz" : "Assignment"} at ${formatTime(nextGate.time)}` : "All gates done";
+  els.assignmentStatusLabel.textContent = "Ready";
 }
 
-function renderMapping() {
+function renderLessonNotes() {
   const lesson = getCurrentLesson();
-  els.courseIdLabel.textContent = lesson.classroom.courseId;
-  els.courseworkIdLabel.textContent = lesson.classroom.courseWorkId;
-  els.videoIdInput.value = lesson.videoId;
-  els.intervalInput.value = lesson.intervalSeconds;
-  els.courseIdInput.value = lesson.classroom.courseId;
-  els.courseworkIdInput.value = lesson.classroom.courseWorkId;
-  els.adminGoogleClientIdInput.value = authConfig.googleClientId;
-  els.adminAllowedEmailsInput.value = authConfig.allowedEmails.join("\n");
-}
-
-function saveConfig() {
-  const lesson = getCurrentLesson();
-  const nextVideoId = els.videoIdInput.value.trim();
-  const nextInterval = Number(els.intervalInput.value);
-  const nextCourseId = els.courseIdInput.value.trim();
-  const nextCourseWorkId = els.courseworkIdInput.value.trim();
-  const nextGoogleClientId = els.adminGoogleClientIdInput.value.trim();
-  const nextAllowedEmails = parseEmailList(els.adminAllowedEmailsInput.value);
-
-  if (!/^[a-zA-Z0-9_-]{6,}$/.test(nextVideoId)) {
-    showToast("Enter a valid YouTube video ID.");
-    return;
-  }
-
-  if (!Number.isFinite(nextInterval) || nextInterval < 0 || (nextInterval > 0 && nextInterval < 15) || nextInterval > 900) {
-    showToast("Use 0 for custom timestamps, or an interval between 15 and 900 seconds.");
-    return;
-  }
-
-  lesson.videoId = nextVideoId;
-  lesson.intervalSeconds = nextInterval;
-  lesson.classroom.courseId = nextCourseId || lesson.classroom.courseId;
-  lesson.classroom.courseWorkId = nextCourseWorkId || lesson.classroom.courseWorkId;
-  rebuildCheckpoints(lesson);
-  resetCurrentLessonProgress();
-  saveLessons();
-
-  authConfig.googleClientId = nextGoogleClientId;
-  authConfig.allowedEmails = nextAllowedEmails;
-  localStorage.setItem("authConfig", JSON.stringify(authConfig));
-  hydrateAuthConfigInputs();
-
-  if (state.player) {
-    state.player.loadVideoById(lesson.videoId);
-  }
-  els.adminPanel.close();
-  renderAuthState();
-  initializeGoogleSignIn();
-  render();
-  showToast("Lesson setup saved.");
+  els.notesBadge.textContent = lesson.assignmentTitle;
+  els.notesList.innerHTML = lesson.notes.map((note) => `<li>${escapeHTML(note)}</li>`).join("");
 }
 
 function switchLesson(index) {
@@ -588,18 +532,6 @@ function switchLesson(index) {
     }
   }
   render();
-}
-
-function rebuildCheckpoints(lesson) {
-  if (!lesson.intervalSeconds) return;
-  lesson.checkpoints = lesson.checkpoints.map((gate, index) => {
-    const time = lesson.intervalSeconds * (index + 1);
-    return {
-      ...gate,
-      time,
-      id: `${lesson.id}-gate-${time}`
-    };
-  });
 }
 
 function resetCurrentLessonProgress() {
@@ -638,12 +570,8 @@ function saveLessons() {
   localStorage.setItem("lessonCatalogVersion", lessonCatalogVersion);
 }
 
-function openClassroom() {
-  window.open(getCurrentLesson().classroom.alternateLink, "_blank", "noopener,noreferrer");
-}
-
-function syncClassroom() {
-  showToast("Classroom sync needs a backend for real studentSubmissions API checks.");
+function openAssignment() {
+  window.open(getCurrentLesson().assignmentUrl, "_blank", "noopener,noreferrer");
 }
 
 function signOut() {
@@ -659,11 +587,6 @@ function signOut() {
   showToast("Signed out.");
 }
 
-function hydrateAuthConfigInputs() {
-  els.adminGoogleClientIdInput.value = authConfig.googleClientId;
-  els.adminAllowedEmailsInput.value = authConfig.allowedEmails.join("\n");
-}
-
 function getStoredLessons() {
   if (shouldResetLessonState) {
     localStorage.setItem("lessons", JSON.stringify(defaultLessons));
@@ -673,13 +596,6 @@ function getStoredLessons() {
   }
 
   return readJSON("lessons", defaultLessons);
-}
-
-function parseEmailList(value) {
-  return value
-    .split(/[\n,; ]+/)
-    .map((item) => item.trim().toLowerCase())
-    .filter((item) => item && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item));
 }
 
 function decodeJwt(token) {
@@ -734,10 +650,7 @@ function formatMinutes(seconds) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-document.querySelector("#adminToggleBtn").addEventListener("click", () => els.adminPanel.showModal());
-document.querySelector("#saveConfigBtn").addEventListener("click", saveConfig);
-document.querySelector("#syncClassroomBtn").addEventListener("click", syncClassroom);
-document.querySelector("#openClassroomBtn").addEventListener("click", openClassroom);
+document.querySelector("#openAssignmentBtn").addEventListener("click", openAssignment);
 document.querySelector("#switchAccountBtn").addEventListener("click", signOut);
 els.gateModal.addEventListener("cancel", (event) => {
   if (state.activeGate) {

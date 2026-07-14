@@ -351,7 +351,7 @@ h2 {
 .player-panel,
 .checkpoint-timeline,
 .status-panel,
-.classroom-panel {
+.notes-panel {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -533,52 +533,30 @@ dd {
   font-weight: 900;
 }
 
-.classroom-visual {
-  display: flex;
-  gap: 10px;
-  padding: 18px 16px 8px;
+.notes-body {
+  padding: 16px 16px 6px;
 }
 
-.doc-card {
-  height: 76px;
-  flex: 1;
+.notes-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.notes-list li::marker {
+  color: var(--secondary);
+}
+
+.assignment-callout {
+  margin: 16px 0 0;
+  padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: inset 0 -18px rgba(255, 255, 255, 0.24);
-}
-
-.doc-card.primary {
-  background: #111c2c;
-}
-
-.doc-card.secondary {
-  background: var(--secondary);
-}
-
-.doc-card.muted {
-  background: var(--secondary-200);
-}
-
-.mapping-list {
-  margin: 0;
-  padding: 8px 16px 16px;
-}
-
-.mapping-list div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.mapping-list div:last-child {
-  border-bottom: 0;
-}
-
-.mapping-list dd {
-  text-align: right;
-  overflow-wrap: anywhere;
+  color: var(--ink);
+  background: var(--secondary-100);
 }
 
 .full-width {
@@ -725,14 +703,12 @@ dd {
 
   .topbar,
   .watch-strip,
-  .checkpoint,
-  .mapping-list div {
+  .checkpoint {
     align-items: stretch;
   }
 
   .topbar,
-  .watch-strip,
-  .mapping-list div {
+  .watch-strip {
     flex-direction: column;
   }
 
