@@ -6,8 +6,30 @@ const siteAuthConfig = {
   ]
 };
 
-const classroomAssignmentUrl = "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2NTA2OTY2";
-const lessonCatalogVersion = "2026-07-15-classroom-python-v4";
+const classroomTopics = [
+  {
+    id: "python",
+    title: "Python",
+    url: "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2NTA2OTY2"
+  },
+  {
+    id: "sql",
+    title: "SQL",
+    url: "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2NDE1NTAz"
+  },
+  {
+    id: "google-cloud",
+    title: "Google Cloud",
+    url: "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2MzY5MTMy"
+  },
+  {
+    id: "placement-training",
+    title: "Placement Training",
+    url: "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2NDUzODQ2"
+  },
+];
+const classroomAssignmentUrl = classroomTopics[0].url;
+const lessonCatalogVersion = "2026-07-15-playlists-v6";
 
 const taskNotes = [
   "Make videos on every question / concept and upload on YouTube.",
@@ -21,8 +43,6 @@ const defaultLessons = [
     id: "python-lecture-1",
     title: "Watch Python Lecture 1",
     videoId: "SxZ4LRkxPyk",
-    posted: "Posted 8 Dec 2025",
-    due: "Due 13 Dec 2025",
     focus: "Python Lecture 1",
     quizA: "What should you create after solving each Lecture 1 question or concept?",
     answerA: "A short YouTube explanation video",
@@ -33,8 +53,6 @@ const defaultLessons = [
     id: "python-lecture-2",
     title: "Watch Python Lecture 2",
     videoId: "gjdsIoA88JU",
-    posted: "Posted 9 Dec 2025",
-    due: "Due 13 Dec 2025",
     focus: "Python Lecture 2",
     quizA: "What is the best habit while following the Lecture 2 examples?",
     answerA: "Pause and solve the example yourself",
@@ -45,8 +63,6 @@ const defaultLessons = [
     id: "python-lecture-3",
     title: "Watch Python Lecture 3",
     videoId: "UKq_6n96Z-0",
-    posted: "Posted 10 Dec 2025",
-    due: "Due 13 Dec 2025",
     focus: "Python Lecture 3",
     quizA: "What should you do before moving past a confusing Lecture 3 concept?",
     answerA: "Write the query and revisit the timestamp",
@@ -57,8 +73,6 @@ const defaultLessons = [
     id: "python-lecture-4",
     title: "Watch Python Lecture 4",
     videoId: "WDW9Dxi5lO4",
-    posted: "Posted 11 Dec 2025",
-    due: "Due 14 Dec 2025",
     focus: "Python Lecture 4",
     quizA: "What should your Lecture 4 notes capture first?",
     answerA: "The rule or pattern used in the example",
@@ -69,8 +83,6 @@ const defaultLessons = [
     id: "python-lecture-5",
     title: "Watch Python Lecture 5",
     videoId: "1bgpbl9Yj88",
-    posted: "Posted 15 Dec 2025",
-    due: "Due 20 Dec 2025",
     focus: "Python Lecture 5",
     quizA: "How should you handle each new Lecture 5 concept?",
     answerA: "Explain it in your own words",
@@ -81,8 +93,6 @@ const defaultLessons = [
     id: "python-lecture-6",
     title: "Watch Python Lecture 6",
     videoId: "P9ywHK_IvUc",
-    posted: "Posted 16 Dec 2025",
-    due: "Due 20 Dec 2025",
     focus: "Python Lecture 6",
     quizA: "What is the expected action after solving a Lecture 6 problem?",
     answerA: "Record and upload the explanation",
@@ -93,8 +103,6 @@ const defaultLessons = [
     id: "python-lecture-7",
     title: "Watch Python Lecture 7",
     videoId: "UHP2wyxdRuQ",
-    posted: "Posted 17 Dec 2025",
-    due: "Due 20 Dec 2025",
     focus: "Python Lecture 7",
     quizA: "What should you do if Lecture 7 raises a doubt?",
     answerA: "Add it to the QnA Sheet",
@@ -105,8 +113,6 @@ const defaultLessons = [
     id: "python-lecture-8",
     title: "Watch Python Lecture 8",
     videoId: "3HAUfCQEJ8g",
-    posted: "Posted 18 Dec 2025",
-    due: "Due 20 Dec 2025",
     focus: "Python Lecture 8",
     quizA: "What should you focus on while watching Lecture 8?",
     answerA: "The steps in each worked example",
@@ -117,8 +123,6 @@ const defaultLessons = [
     id: "python-lecture-9",
     title: "Watch Python Lecture 9",
     videoId: "abFXQSo3Lx0",
-    posted: "Posted 22 Dec 2025",
-    due: "Due 28 Dec 2025",
     focus: "Python Lecture 9",
     quizA: "What should you produce for every important Lecture 9 concept?",
     answerA: "A YouTube explanation video",
@@ -129,8 +133,6 @@ const defaultLessons = [
     id: "python-lecture-10-api",
     title: "Watch Python Lecture 10: API",
     videoId: "AqOsJQOxp1w",
-    posted: "Posted 23 Dec 2025",
-    due: "Due 28 Dec 2025",
     focus: "Lecture 10 API section",
     extraNotes: ["API video: https://youtu.be/AqOsJQOxp1w"],
     assignmentTitle: "Watch Python Lecture 10",
@@ -143,8 +145,6 @@ const defaultLessons = [
     id: "python-lecture-10-mysql",
     title: "Watch Python Lecture 10: MySQL Connectivity",
     videoId: "-Po8PQsgad8",
-    posted: "Posted 23 Dec 2025",
-    due: "Due 28 Dec 2025",
     focus: "Lecture 10 MySQL Connectivity section",
     extraNotes: ["MySQL Connectivity video: https://youtu.be/-Po8PQsgad8"],
     assignmentTitle: "Watch Python Lecture 10",
@@ -157,8 +157,6 @@ const defaultLessons = [
     id: "python-lecture-10-selenium",
     title: "Watch Python Lecture 10: Selenium",
     videoId: "euEnBa-AKZ0",
-    posted: "Posted 23 Dec 2025",
-    due: "Due 28 Dec 2025",
     focus: "Lecture 10 Selenium section",
     extraNotes: ["Selenium video: https://youtu.be/euEnBa-AKZ0"],
     assignmentTitle: "Watch Python Lecture 10",
@@ -171,8 +169,6 @@ const defaultLessons = [
     id: "python-lecture-11",
     title: "Watch Python Lecture 11",
     videoId: "2MG9fgTI4Ww",
-    posted: "Posted 24 Dec 2025",
-    due: "Due 28 Dec 2025",
     focus: "Python Lecture 11",
     quizA: "What should you do with every Lecture 11 question or concept?",
     answerA: "Make a video explanation",
@@ -183,8 +179,6 @@ const defaultLessons = [
     id: "python-lecture-12",
     title: "Watch Python Lecture 12",
     videoId: "aJzmP56uFvI",
-    posted: "Posted 25 Dec 2025",
-    due: "Due 28 Dec 2025",
     focus: "Python Lecture 12",
     quizA: "How should you close out Lecture 12 practice?",
     answerA: "Submit solved work and questions",
@@ -193,6 +187,7 @@ const defaultLessons = [
   }),
   {
     id: "data-marathon-python",
+    playlistId: "python",
     title: "Data Marathon: Python",
     subtitle: "Marathon overview + hacking sheet",
     videoId: "jCDIYPMWWzA",
@@ -200,8 +195,6 @@ const defaultLessons = [
     assignmentTitle: "Data Marathon: Python",
     assignmentUrl: classroomAssignmentUrl,
     notes: [
-      "Posted 29 Dec 2025.",
-      "Due 4 Jan 2026.",
       "Marathon overview video: https://youtu.be/jCDIYPMWWzA",
       "Hacking Sheet: https://docs.google.com/document/d/1TdPVBtqhj37qb2NJFR_cmSNR0XLoZ03dl8vsnKBq9Rg/edit?usp=sharing",
       "Submission Folder: C7-DE / Data Marathon"
@@ -233,9 +226,92 @@ const defaultLessons = [
         prompt: "Submit your Data Marathon work in Google Classroom and the listed submission folder."
       }
     ]
-  }
-];
+  },
 
+  ...buildTopicLessons({
+    playlistId: "sql",
+    assignments: [
+      { title: "Watch SQL Lecture 15", videos: ["zvJfCX9Nz58"] },
+      { title: "Watch SQL Lecture 14", videos: ["1S8bNF3YuyY", "2IgZLPbbzvI"] },
+      { title: "Watch SQL Lecture 13", videos: ["yiT9_upN7MQ", "BeWzrlnxsYA", "1pqLsqiGydg", "weHozvX77mg", "dp7Inof3AYU"] },
+      {
+        title: "Watch SQL Lecture 12",
+        videos: ["n4wzLiEl7ns"],
+        references: ["Reference sheet: https://docs.google.com/spreadsheets/d/138jK5qmlp920kWeVradQpWibDQV58L_183H_xJFONns/edit?usp=sharing"]
+      },
+      { title: "Watch SQL Lecture 11", videos: ["rA66H9QJsdc"] },
+      {
+        title: "Watch SQL Lecture 10",
+        videos: ["Cw8WvKu9g4Y", "ngpsadW9Z8U", "ZLWt2ZttEqw"],
+        references: ["Reference: https://learnsql.com/blog/sql-subquery-cte-difference/"]
+      },
+      { title: "Watch SQL Lecture 9", videos: ["WUYcfXH3oPM", "NXmtEqjpXWI"] },
+      { title: "Watch SQL Lecture 8", videos: ["a5qXGAxeiTo"] },
+      { title: "Watch SQL Lecture 7", videos: ["JjzxPyGc0_c"] }
+    ]
+  }),
+  ...buildTopicLessons({
+    playlistId: "google-cloud",
+    assignments: [
+      { title: "Watch Google Cloud Lecture 9", videos: ["NW0BhtOpsq0", "45f4EE-1mTE", "gzDsUtkrxMw"] },
+      { title: "Weekly Session Revision", videos: ["SafqCmSNhdM"], tasks: ["Revise everything.", "Write queries in the QnA Sheet.", "Complete the daily mock interview session."] },
+      { title: "Watch Google Cloud Lecture 8", videos: ["WmFfvQV-h8g"] },
+      { title: "Watch Google Cloud Lecture 7", videos: ["ReuEJaS90zw"] },
+      { title: "Watch Google Cloud Lecture 6", videos: ["jMsj2_cyGCw", "PqGqmzLYb8A", "4Wp_r8igV00"] },
+      {
+        title: "Watch Google Cloud Lecture 5",
+        videos: ["02RN4G4xxMc"],
+        references: ["Practice form: https://forms.gle/FMyD6myTAgka4U146"]
+      },
+      { title: "Watch Google Cloud Lecture 4", videos: ["m8v1aJICY9o"] },
+      { title: "Watch Google Cloud Lecture 3", videos: ["XIPj3sLErq0"] },
+      { title: "Watch Google Cloud Lecture 2", videos: ["oT-cNhLZOmE"] },
+      {
+        title: "Watch Google Cloud Lecture 1",
+        videos: ["atc8r7ui4es"],
+        references: ["Practice form: https://forms.gle/FMyD6myTAgka4U146"]
+      }
+    ]
+  }),
+  ...buildTopicLessons({
+    playlistId: "placement-training",
+    assignments: [
+      {
+        title: "Watch Placement Prep Lecture 7",
+        videos: ["HXxa9YQJ2Lo", "TB5aj0wbo74", "APCm1VMIL6Y"],
+        tasks: ["Record a 60 second introduction and upload it on YouTube.", "Solve video or assignment questions and submit in Classroom.", "Watch and record the HR call scripts.", "Complete the daily mock interview session."]
+      },
+      {
+        title: "Watch Placement Prep Lecture 6",
+        videos: ["wWKu5xtMisU", "YNBaXJ2mRjU", "VCrqZBcdPKY"],
+        references: ["Practice form: https://forms.gle/Jxx6UFdEufbnRtW27"]
+      },
+      { title: "Watch Placement Prep Lecture 5", videos: ["-g1dPftuuWE", "LIXfbTGJisg"] },
+      { title: "Watch Placement Prep Lecture 4", videos: ["pIM4Pszt9B4", "Lft_bS3iYHw", "Nc6SBJsuSAQ"] },
+      {
+        title: "Watch Placement Prep Lecture 3",
+        videos: ["n5BttuJQp_A", "VolGD85_0Do"],
+        references: ["Study document: https://docs.google.com/document/d/1FsOk1pokuGMHVkggc37oPR6xWTEiXU8Q01T7aNPrjFE/edit?usp=sharing"]
+      },
+      {
+        title: "Watch Placement Prep Lecture 2",
+        videos: ["mJHwRVAuhhc", "9SpVbXvth8g"],
+        references: ["Naukri/profile document: https://docs.google.com/document/d/1n9Bq-8n9uiQ6YiDW-E2jTcfUp9SpzYLLFXLrjVYd4N0/edit?usp=sharing"],
+        tasks: ["Make a video on your introduction and upload it on YouTube.", "Share Naukri profile screenshots and submit in Classroom.", "Write queries in the QnA Sheet.", "Complete the daily mock interview session."]
+      },
+      {
+        title: "Watch Placement Prep Lecture 1",
+        videos: ["_b0NCq01Vvw", "VCrqZBcdPKY"],
+        references: [
+          "Resume template: https://www.canva.com/templates/EAF0xAJK5wU-blue-and-white-professional-resume/",
+          "Resume design: https://www.canva.com/design/DAGWJnn9c3k/RyUSm_lUXgy2qJcZGEU_0g/view?utm_content=DAGWJnn9c3k&utm_campaign=designshare&utm_medium=link&utm_source=editor",
+          "Practice form: https://forms.gle/Jxx6UFdEufbnRtW27"
+        ],
+        tasks: ["Make a video on your introduction and upload it on YouTube.", "Prepare long and short intro scripts and upload them in Drive.", "Write queries in the QnA Sheet.", "Complete the daily mock interview session."]
+      }
+    ]
+  })
+];
 const savedAuthConfig = readJSON("authConfig", {});
 const authConfig = {
   googleClientId: siteAuthConfig.googleClientId || savedAuthConfig.googleClientId || "",
@@ -252,7 +328,8 @@ const state = {
   currentLessonIndex: Number(localStorage.getItem("currentLessonIndex") || 0),
   user: readJSON("signedInUser", null),
   lessonState: shouldResetLessonState ? {} : readJSON("lessonState", {}),
-  lessons: getStoredLessons()
+  lessons: getStoredLessons(),
+  openPlaylists: readJSON("openPlaylists", { python: true })
 };
 
 const els = {
@@ -552,19 +629,64 @@ function render() {
 }
 
 function renderLessonList() {
-  els.lessonList.innerHTML = state.lessons.map((lesson, index) => `
-    <button class="lesson-item ${index === state.currentLessonIndex ? "active" : ""}" type="button" data-lesson-index="${index}">
-      <span>${String(index + 1).padStart(2, "0")}</span>
-      <div>
-        <strong>${escapeHTML(lesson.title)}</strong>
-        <small>${escapeHTML(lesson.subtitle)}</small>
-      </div>
-    </button>
-  `).join("");
+  els.lessonList.innerHTML = classroomTopics.map((playlist) => {
+    const lessons = state.lessons
+      .map((lesson, index) => ({ lesson, index }))
+      .filter(({ lesson }) => lesson.playlistId === playlist.id);
+    const isOpen = Boolean(state.openPlaylists[playlist.id]);
+
+    return `
+      <section class="playlist-group">
+        <button class="playlist-toggle ${isOpen ? "open" : ""}" type="button" data-playlist-id="${playlist.id}" aria-expanded="${isOpen}">
+          <span>${isOpen ? "−" : "+"}</span>
+          <div>
+            <strong>${escapeHTML(playlist.title)}</strong>
+            <small>${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"}</small>
+          </div>
+        </button>
+        <div class="playlist-lessons ${isOpen ? "open" : ""}">
+          ${lessons.length > 0 ? lessons.map(({ lesson, index }, lessonIndex) => `
+            <button class="lesson-item ${index === state.currentLessonIndex ? "active" : ""}" type="button" data-lesson-index="${index}">
+              <span>${String(lessonIndex + 1).padStart(2, "0")}</span>
+              <div>
+                <strong>${escapeHTML(lesson.title)}</strong>
+                <small>${escapeHTML(lesson.subtitle)}</small>
+              </div>
+            </button>
+          `).join("") : `
+            <a class="empty-playlist-link" href="${escapeHTML(playlist.url)}" target="_blank" rel="noopener noreferrer">
+              Open Classroom topic
+            </a>
+          `}
+        </div>
+      </section>
+    `;
+  }).join("");
+
+  els.lessonList.querySelectorAll(".playlist-toggle").forEach((button) => {
+    button.addEventListener("click", () => {
+      const playlistId = button.dataset.playlistId;
+      state.openPlaylists[playlistId] = !state.openPlaylists[playlistId];
+      localStorage.setItem("openPlaylists", JSON.stringify(state.openPlaylists));
+      renderLessonList();
+    });
+  });
 
   els.lessonList.querySelectorAll(".lesson-item").forEach((button) => {
     button.addEventListener("click", () => switchLesson(Number(button.dataset.lessonIndex)));
   });
+}
+
+function getPlaylistTitle(playlistId) {
+  return classroomTopics.find((playlist) => playlist.id === playlistId)?.title || "Private Video Series";
+}
+
+function getPlaylistUrl(playlistId) {
+  return classroomTopics.find((playlist) => playlist.id === playlistId)?.url || classroomAssignmentUrl;
+}
+
+function getLessonAssignmentUrl(lesson) {
+  return lesson.assignmentUrl || getPlaylistUrl(lesson.playlistId);
 }
 
 function renderCheckpoints() {
@@ -598,7 +720,7 @@ function renderStats() {
   const nextGate = lesson.checkpoints.find((gate) => !progress.completed.includes(gate.id));
 
   document.querySelector(".topbar h1").textContent = lesson.title;
-  document.querySelector(".topbar .eyebrow").textContent = "Private Video Series";
+  document.querySelector(".topbar .eyebrow").textContent = getPlaylistTitle(lesson.playlistId);
   els.progressLabel.textContent = `${completeCount} of ${total} gates`;
   els.progressMeter.style.width = `${percent}%`;
   els.completionBadge.textContent = percent === 100 ? "Completed" : "In progress";
@@ -671,19 +793,53 @@ function saveLessons() {
   localStorage.setItem("lessonCatalogVersion", lessonCatalogVersion);
 }
 
+function buildTopicLessons(config) {
+  const playlist = classroomTopics.find((item) => item.id === config.playlistId);
+  return config.assignments.flatMap((assignment) => {
+    return assignment.videos.map((videoId, index) => {
+      const hasParts = assignment.videos.length > 1;
+      const lessonTitle = hasParts ? `${assignment.title}: Part ${index + 1}` : assignment.title;
+      const cleanId = `${config.playlistId}-${assignment.title}-${index + 1}`
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      const notes = [
+        `Video: https://youtu.be/${videoId}`,
+        ...(assignment.references || []),
+        ...(assignment.tasks || taskNotes)
+      ];
+
+      return buildLesson({
+        id: cleanId,
+        playlistId: config.playlistId,
+        title: lessonTitle,
+        videoId,
+        focus: assignment.title,
+        assignmentTitle: assignment.title,
+        assignmentUrl: playlist.url,
+        notes,
+        quizA: `What should you focus on while watching ${assignment.title}?`,
+        answerA: "Understand the concept and practice it yourself",
+        quizB: `Where should work for ${assignment.title} be completed or submitted?`,
+        answerB: "Google Classroom"
+      });
+    });
+  });
+}
+
 function buildLesson(config) {
   const assignmentTitle = config.assignmentTitle || config.title;
+  const playlistId = config.playlistId || "python";
   return {
     id: config.id,
+    playlistId,
     title: config.title,
     subtitle: `${config.focus} + Classroom assignment`,
     videoId: config.videoId,
     intervalSeconds: 0,
     assignmentTitle,
-    assignmentUrl: classroomAssignmentUrl,
-    notes: [
-      config.posted,
-      config.due,
+    assignmentUrl: config.assignmentUrl || getPlaylistUrl(playlistId),
+    notes: config.notes || [
       `Video: https://youtu.be/${config.videoId}`,
       ...(config.extraNotes || []),
       ...taskNotes
@@ -736,7 +892,7 @@ function shuffleChoices(choices) {
 }
 
 function openAssignment() {
-  window.open(getCurrentLesson().assignmentUrl, "_blank", "noopener,noreferrer");
+  window.open(getLessonAssignmentUrl(getCurrentLesson()), "_blank", "noopener,noreferrer");
 }
 
 function signOut() {

@@ -149,6 +149,7 @@ textarea:focus-visible {
 
 .brand,
 .lesson-item,
+.playlist-toggle,
 .watch-strip,
 .section-heading,
 .topbar,
@@ -226,6 +227,70 @@ textarea:focus-visible {
 .lesson-list > div {
   display: grid;
   gap: 10px;
+}
+
+.playlist-group {
+  display: grid;
+  gap: 8px;
+}
+
+.playlist-toggle {
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  text-align: left;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.playlist-toggle > span {
+  display: grid;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 900;
+  background: rgba(33, 158, 188, 0.72);
+}
+
+.playlist-toggle div {
+  min-width: 0;
+  flex: 1;
+}
+
+.playlist-toggle strong,
+.playlist-toggle small {
+  display: block;
+}
+
+.playlist-toggle small {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.playlist-lessons {
+  display: none;
+  gap: 8px;
+  padding-left: 10px;
+}
+
+.playlist-lessons.open {
+  display: grid;
+}
+
+.empty-playlist-link {
+  display: block;
+  padding: 11px 12px;
+  color: #dff7ff;
+  text-decoration: none;
+  border: 1px dashed rgba(142, 202, 230, 0.24);
+  border-radius: 8px;
+  background: rgba(33, 158, 188, 0.08);
 }
 
 .lesson-item {
