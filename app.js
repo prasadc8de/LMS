@@ -1074,12 +1074,12 @@ function saveScheduleFromModal() {
     return;
   }
 
-  state.lessonSchedule[lessonId] = timestamp;
+  const scheduledLessons = scheduleLessonSequence(lessonId, timestamp, 3);
   saveLessonSchedule();
   normalizeLessonIndex();
   render();
   els.scheduleModal.close();
-  showToast("Lesson schedule saved.");
+  showToast(`${scheduledLessons} lesson${scheduledLessons === 1 ? "" : "s"} scheduled.`);
 }
 
 function clearScheduleFromModal() {
@@ -1090,6 +1090,23 @@ function clearScheduleFromModal() {
   render();
   els.scheduleModal.close();
   showToast("Lesson hidden from students.");
+}
+
+function scheduleLessonSequence(lessonId, startTimestamp, followUpCount) {
+  const startIndex = state.lessons.findIndex((lesson) => lesson.id === lessonId);
+  if (startIndex < 0) return 0;
+
+  const lessonsToSchedule = state.lessons.slice(startIndex, startIndex + followUpCount + 1);
+  lessonsToSchedule.forEach((lesson, offset) => {
+    state.lessonSchedule[lesson.id] = addDays(startTimestamp, offset);
+  });
+  return lessonsToSchedule.length;
+}
+
+function addDays(timestamp, days) {
+  const date = new Date(timestamp);
+  date.setDate(date.getDate() + days);
+  return date.getTime();
 }
 
 function toDateInputValue(date) {
