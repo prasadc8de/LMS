@@ -7,129 +7,230 @@ const siteAuthConfig = {
 };
 
 const classroomAssignmentUrl = "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2NTA2OTY2";
-const lessonCatalogVersion = "2026-07-15-student-lessons-v3";
+const lessonCatalogVersion = "2026-07-15-classroom-python-v4";
+
+const taskNotes = [
+  "Make videos on every question / concept and upload on YouTube.",
+  "Solve questions in video / assignments and submit in Classroom.",
+  "Write queries in the QnA Sheet.",
+  "Complete the daily mock interview session."
+];
 
 const defaultLessons = [
-  {
-    id: "lesson-1",
-    title: "Lesson 1",
-    subtitle: "Foundation video + concept checks",
+  buildLesson({
+    id: "python-lecture-1",
+    title: "Watch Python Lecture 1",
     videoId: "SxZ4LRkxPyk",
-    intervalSeconds: 0,
-    assignmentTitle: "Lesson 1 assignment",
-    assignmentUrl: classroomAssignmentUrl,
-    notes: [
-      "Watch for the first core idea introduced in the lesson.",
-      "Pause after each example and write one sentence in your own words.",
-      "Use the assignment link after the checkpoint to submit your short reflection."
-    ],
-    checkpoints: [
-      {
-        id: "lesson-1-gate-38",
-        time: 38,
-        type: "quiz",
-        title: "Opening Concept",
-        prompt: "What is the best way to use this first section before moving ahead?",
-        options: ["Watch actively and note the main idea", "Skip to the end", "Open another video", "Ignore the example"],
-        answer: "Watch actively and note the main idea"
-      },
-      {
-        id: "lesson-1-gate-82",
-        time: 82,
-        type: "quiz",
-        title: "Key Detail Check",
-        prompt: "When a concept is introduced in a lesson, what should you identify first?",
-        options: ["The definition or rule being used", "Only the background music", "The video resolution", "The upload date"],
-        answer: "The definition or rule being used"
-      },
-      {
-        id: "lesson-1-gate-128",
-        time: 128,
-        type: "assignment",
-        title: "Reflection Upload",
-        prompt: "Upload a short note in Google Classroom summarizing the main takeaway from Lesson 1."
-      }
-    ]
-  },
-  {
-    id: "lesson-2",
-    title: "Lesson 2",
-    subtitle: "Practice video + applied checks",
-    videoId: "3HAUfCQEJ8g",
-    intervalSeconds: 0,
-    assignmentTitle: "Lesson 2 assignment",
-    assignmentUrl: classroomAssignmentUrl,
-    notes: [
-      "Focus on the steps shown in the worked example.",
-      "Keep a note of where you feel unsure so you can revisit that timestamp.",
-      "Submit your practice response through the assignment link."
-    ],
-    checkpoints: [
-      {
-        id: "lesson-2-gate-52",
-        time: 52,
-        type: "quiz",
-        title: "Process Check",
-        prompt: "What should you do when the video demonstrates a process?",
-        options: ["Follow each step in order", "Memorize only the title", "Pause forever", "Change the playback tab"],
-        answer: "Follow each step in order"
-      },
-      {
-        id: "lesson-2-gate-116",
-        time: 116,
-        type: "assignment",
-        title: "Practice Submission",
-        prompt: "Complete the practice task and submit your work in the mapped Google Classroom assignment."
-      },
-      {
-        id: "lesson-2-gate-174",
-        time: 174,
-        type: "quiz",
-        title: "Application Check",
-        prompt: "After watching a worked example, what is the strongest next step?",
-        options: ["Try a similar example independently", "Close the lesson immediately", "Skip the checkpoint", "Use a different Gmail"],
-        answer: "Try a similar example independently"
-      }
-    ]
-  },
-  {
-    id: "lesson-3",
-    title: "Lesson 3",
-    subtitle: "Review video + readiness checks",
+    posted: "Posted 8 Dec 2025",
+    due: "Due 13 Dec 2025",
+    focus: "Python Lecture 1",
+    quizA: "What should you create after solving each Lecture 1 question or concept?",
+    answerA: "A short YouTube explanation video",
+    quizB: "Where should your solved assignment work be submitted?",
+    answerB: "Google Classroom"
+  }),
+  buildLesson({
+    id: "python-lecture-2",
+    title: "Watch Python Lecture 2",
+    videoId: "gjdsIoA88JU",
+    posted: "Posted 9 Dec 2025",
+    due: "Due 13 Dec 2025",
+    focus: "Python Lecture 2",
+    quizA: "What is the best habit while following the Lecture 2 examples?",
+    answerA: "Pause and solve the example yourself",
+    quizB: "Where should questions from this lesson be captured?",
+    answerB: "QnA Sheet"
+  }),
+  buildLesson({
+    id: "python-lecture-3",
+    title: "Watch Python Lecture 3",
     videoId: "UKq_6n96Z-0",
+    posted: "Posted 10 Dec 2025",
+    due: "Due 13 Dec 2025",
+    focus: "Python Lecture 3",
+    quizA: "What should you do before moving past a confusing Lecture 3 concept?",
+    answerA: "Write the query and revisit the timestamp",
+    quizB: "What confirms you practiced the video questions?",
+    answerB: "A Classroom submission"
+  }),
+  buildLesson({
+    id: "python-lecture-4",
+    title: "Watch Python Lecture 4",
+    videoId: "WDW9Dxi5lO4",
+    posted: "Posted 11 Dec 2025",
+    due: "Due 14 Dec 2025",
+    focus: "Python Lecture 4",
+    quizA: "What should your Lecture 4 notes capture first?",
+    answerA: "The rule or pattern used in the example",
+    quizB: "What should you complete along with the video assignment?",
+    answerB: "Daily mock interview session"
+  }),
+  buildLesson({
+    id: "python-lecture-5",
+    title: "Watch Python Lecture 5",
+    videoId: "1bgpbl9Yj88",
+    posted: "Posted 15 Dec 2025",
+    due: "Due 20 Dec 2025",
+    focus: "Python Lecture 5",
+    quizA: "How should you handle each new Lecture 5 concept?",
+    answerA: "Explain it in your own words",
+    quizB: "Which upload proves your explanation practice?",
+    answerB: "YouTube concept video"
+  }),
+  buildLesson({
+    id: "python-lecture-6",
+    title: "Watch Python Lecture 6",
+    videoId: "P9ywHK_IvUc",
+    posted: "Posted 16 Dec 2025",
+    due: "Due 20 Dec 2025",
+    focus: "Python Lecture 6",
+    quizA: "What is the expected action after solving a Lecture 6 problem?",
+    answerA: "Record and upload the explanation",
+    quizB: "Where should the final solved work be submitted?",
+    answerB: "Google Classroom"
+  }),
+  buildLesson({
+    id: "python-lecture-7",
+    title: "Watch Python Lecture 7",
+    videoId: "UHP2wyxdRuQ",
+    posted: "Posted 17 Dec 2025",
+    due: "Due 20 Dec 2025",
+    focus: "Python Lecture 7",
+    quizA: "What should you do if Lecture 7 raises a doubt?",
+    answerA: "Add it to the QnA Sheet",
+    quizB: "What classroom routine should be completed daily?",
+    answerB: "Mock interview session"
+  }),
+  buildLesson({
+    id: "python-lecture-8",
+    title: "Watch Python Lecture 8",
+    videoId: "3HAUfCQEJ8g",
+    posted: "Posted 18 Dec 2025",
+    due: "Due 20 Dec 2025",
+    focus: "Python Lecture 8",
+    quizA: "What should you focus on while watching Lecture 8?",
+    answerA: "The steps in each worked example",
+    quizB: "What is required before marking the lesson complete?",
+    answerB: "Assignment submission in Classroom"
+  }),
+  buildLesson({
+    id: "python-lecture-9",
+    title: "Watch Python Lecture 9",
+    videoId: "abFXQSo3Lx0",
+    posted: "Posted 22 Dec 2025",
+    due: "Due 28 Dec 2025",
+    focus: "Python Lecture 9",
+    quizA: "What should you produce for every important Lecture 9 concept?",
+    answerA: "A YouTube explanation video",
+    quizB: "Where do unresolved doubts belong?",
+    answerB: "QnA Sheet"
+  }),
+  buildLesson({
+    id: "python-lecture-10-api",
+    title: "Watch Python Lecture 10: API",
+    videoId: "AqOsJQOxp1w",
+    posted: "Posted 23 Dec 2025",
+    due: "Due 28 Dec 2025",
+    focus: "Lecture 10 API section",
+    extraNotes: ["API video: https://youtu.be/AqOsJQOxp1w"],
+    assignmentTitle: "Watch Python Lecture 10",
+    quizA: "What should you identify first in the API section?",
+    answerA: "The request and response flow",
+    quizB: "Where should API practice work be submitted?",
+    answerB: "Google Classroom"
+  }),
+  buildLesson({
+    id: "python-lecture-10-mysql",
+    title: "Watch Python Lecture 10: MySQL Connectivity",
+    videoId: "-Po8PQsgad8",
+    posted: "Posted 23 Dec 2025",
+    due: "Due 28 Dec 2025",
+    focus: "Lecture 10 MySQL Connectivity section",
+    extraNotes: ["MySQL Connectivity video: https://youtu.be/-Po8PQsgad8"],
+    assignmentTitle: "Watch Python Lecture 10",
+    quizA: "What should you verify when practicing MySQL connectivity?",
+    answerA: "The connection and query result",
+    quizB: "Where should connectivity doubts be recorded?",
+    answerB: "QnA Sheet"
+  }),
+  buildLesson({
+    id: "python-lecture-10-selenium",
+    title: "Watch Python Lecture 10: Selenium",
+    videoId: "euEnBa-AKZ0",
+    posted: "Posted 23 Dec 2025",
+    due: "Due 28 Dec 2025",
+    focus: "Lecture 10 Selenium section",
+    extraNotes: ["Selenium video: https://youtu.be/euEnBa-AKZ0"],
+    assignmentTitle: "Watch Python Lecture 10",
+    quizA: "What should you observe first in the Selenium section?",
+    answerA: "The browser action being automated",
+    quizB: "What evidence should you prepare after practice?",
+    answerB: "A solved assignment or explanation video"
+  }),
+  buildLesson({
+    id: "python-lecture-11",
+    title: "Watch Python Lecture 11",
+    videoId: "2MG9fgTI4Ww",
+    posted: "Posted 24 Dec 2025",
+    due: "Due 28 Dec 2025",
+    focus: "Python Lecture 11",
+    quizA: "What should you do with every Lecture 11 question or concept?",
+    answerA: "Make a video explanation",
+    quizB: "What should happen after solving the assignment?",
+    answerB: "Submit it in Classroom"
+  }),
+  buildLesson({
+    id: "python-lecture-12",
+    title: "Watch Python Lecture 12",
+    videoId: "aJzmP56uFvI",
+    posted: "Posted 25 Dec 2025",
+    due: "Due 28 Dec 2025",
+    focus: "Python Lecture 12",
+    quizA: "How should you close out Lecture 12 practice?",
+    answerA: "Submit solved work and questions",
+    quizB: "Which routine helps check interview readiness?",
+    answerB: "Daily mock interview session"
+  }),
+  {
+    id: "data-marathon-python",
+    title: "Data Marathon: Python",
+    subtitle: "Marathon overview + hacking sheet",
+    videoId: "jCDIYPMWWzA",
     intervalSeconds: 0,
-    assignmentTitle: "Lesson 3 assignment",
+    assignmentTitle: "Data Marathon: Python",
     assignmentUrl: classroomAssignmentUrl,
     notes: [
-      "Use this lesson to connect the earlier ideas.",
-      "Rewatch any section where your answer feels uncertain.",
-      "Upload final notes or evidence of completion using the assignment link."
+      "Posted 29 Dec 2025.",
+      "Due 4 Jan 2026.",
+      "Marathon overview video: https://youtu.be/jCDIYPMWWzA",
+      "Hacking Sheet: https://docs.google.com/document/d/1TdPVBtqhj37qb2NJFR_cmSNR0XLoZ03dl8vsnKBq9Rg/edit?usp=sharing",
+      "Submission Folder: C7-DE / Data Marathon"
     ],
     checkpoints: [
       {
-        id: "lesson-3-gate-45",
-        time: 45,
+        id: "data-marathon-python-gate-30",
+        time: 30,
         type: "quiz",
-        title: "Review Focus",
-        prompt: "What is the purpose of a review lesson?",
-        options: ["Connect earlier ideas and check understanding", "Avoid all previous material", "Only test internet speed", "Replace the assignment"],
-        answer: "Connect earlier ideas and check understanding"
+        title: "Marathon Overview",
+        prompt: "What should you review before starting the Data Marathon work?",
+        options: ["The marathon overview and hacking sheet", "Only the due date", "A different course", "The browser theme"],
+        answer: "The marathon overview and hacking sheet"
       },
       {
-        id: "lesson-3-gate-102",
-        time: 102,
+        id: "data-marathon-python-gate-90",
+        time: 90,
         type: "quiz",
-        title: "Confidence Check",
-        prompt: "If a topic still feels unclear during review, what should you do?",
-        options: ["Rewatch the relevant section and write a question", "Pretend it is complete", "Sign out", "Skip every future checkpoint"],
-        answer: "Rewatch the relevant section and write a question"
+        title: "Submission Folder",
+        prompt: "Which folder is listed for Data Marathon submissions?",
+        options: ["C7-DE / Data Marathon", "C7-DE / Lecture 1", "Personal Downloads", "Archived Classes"],
+        answer: "C7-DE / Data Marathon"
       },
       {
-        id: "lesson-3-gate-158",
-        time: 158,
+        id: "data-marathon-python-gate-150",
+        time: 150,
         type: "assignment",
-        title: "Final Evidence Upload",
-        prompt: "Upload your final notes or response in Google Classroom before completing the video series."
+        title: "Submit Marathon Work",
+        prompt: "Submit your Data Marathon work in Google Classroom and the listed submission folder."
       }
     ]
   }
@@ -568,6 +669,70 @@ function saveLessonState() {
 function saveLessons() {
   localStorage.setItem("lessons", JSON.stringify(state.lessons));
   localStorage.setItem("lessonCatalogVersion", lessonCatalogVersion);
+}
+
+function buildLesson(config) {
+  const assignmentTitle = config.assignmentTitle || config.title;
+  return {
+    id: config.id,
+    title: config.title,
+    subtitle: `${config.focus} + Classroom assignment`,
+    videoId: config.videoId,
+    intervalSeconds: 0,
+    assignmentTitle,
+    assignmentUrl: classroomAssignmentUrl,
+    notes: [
+      config.posted,
+      config.due,
+      `Video: https://youtu.be/${config.videoId}`,
+      ...(config.extraNotes || []),
+      ...taskNotes
+    ],
+    checkpoints: [
+      {
+        id: `${config.id}-gate-30`,
+        time: 30,
+        type: "quiz",
+        title: "Focus Check",
+        prompt: config.quizA,
+        options: shuffleChoices([
+          config.answerA,
+          "Skip the example and continue",
+          "Only watch without taking action",
+          "Use another student's submission"
+        ]),
+        answer: config.answerA
+      },
+      {
+        id: `${config.id}-gate-90`,
+        time: 90,
+        type: "quiz",
+        title: "Task Check",
+        prompt: config.quizB,
+        options: shuffleChoices([
+          config.answerB,
+          "Keep it only on your desktop",
+          "Ignore the assignment notes",
+          "Wait until the course ends"
+        ]),
+        answer: config.answerB
+      },
+      {
+        id: `${config.id}-gate-150`,
+        time: 150,
+        type: "assignment",
+        title: "Classroom Submission",
+        prompt: `Complete the ${assignmentTitle} work, then submit or update it in Google Classroom.`
+      }
+    ]
+  };
+}
+
+function shuffleChoices(choices) {
+  const [answer, ...rest] = choices;
+  const rotation = answer.length % choices.length;
+  const mixed = [...rest.slice(rotation), answer, ...rest.slice(0, rotation)];
+  return mixed;
 }
 
 function openAssignment() {
