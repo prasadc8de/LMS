@@ -898,6 +898,33 @@ dd {
   font-size: 0.88rem;
 }
 
+.schedule-preview {
+  display: grid;
+  gap: 8px;
+}
+
+.schedule-preview div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+
+.schedule-preview strong,
+.schedule-preview span {
+  min-width: 0;
+  font-size: 0.86rem;
+}
+
+.schedule-preview span {
+  color: var(--ink-faint);
+  text-align: right;
+}
+
 .admin-grid input,
 .admin-grid textarea,
 .schedule-grid input,

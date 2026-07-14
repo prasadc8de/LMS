@@ -367,6 +367,7 @@ const els = {
   scheduleDateInput: document.querySelector("#scheduleDateInput"),
   scheduleTimeInput: document.querySelector("#scheduleTimeInput"),
   scheduleStatusText: document.querySelector("#scheduleStatusText"),
+  schedulePreview: document.querySelector("#schedulePreview"),
   saveScheduleBtn: document.querySelector("#saveScheduleBtn"),
   clearScheduleBtn: document.querySelector("#clearScheduleBtn"),
   toast: document.querySelector("#toast")
@@ -740,12 +741,16 @@ function canAccessLesson(lesson) {
 
 function getLessonMeta(lesson) {
   if (!isTeacher()) return lesson.subtitle;
+  return getScheduleStateLabel(lesson);
+}
+
+function getScheduleStateLabel(lesson) {
   const publishedAt = getPublishedAt(lesson.id);
   if (publishedAt <= Date.now()) {
-    return `Visible • ${formatSchedule(publishedAt)}`;
+    return `Visible - ${formatSchedule(publishedAt)}`;
   }
   if (state.lessonSchedule[lesson.id]) {
-    return `Scheduled • ${formatSchedule(publishedAt)}`;
+    return `Scheduled - ${formatSchedule(publishedAt)}`;
   }
   return "Hidden from students";
 }
@@ -1042,7 +1047,7 @@ function openScheduleModal() {
 
 function renderScheduleOptions() {
   els.scheduleLessonSelect.innerHTML = state.lessons.map((lesson) => `
-    <option value="${escapeHTML(lesson.id)}">${escapeHTML(getPlaylistTitle(lesson.playlistId))} / ${escapeHTML(lesson.title)}</option>
+    <option value="${escapeHTML(lesson.id)}">${escapeHTML(getPlaylistTitle(lesson.playlistId))} / ${escapeHTML(lesson.title)} - ${escapeHTML(getScheduleStateLabel(lesson))}</option>
   `).join("");
 }
 
@@ -1052,6 +1057,7 @@ function fillScheduleInputs(lessonId) {
     els.scheduleDateInput.value = "";
     els.scheduleTimeInput.value = "";
     els.scheduleStatusText.textContent = "This lesson is hidden from students.";
+    renderSchedulePreview();
     return;
   }
 
@@ -1059,6 +1065,7 @@ function fillScheduleInputs(lessonId) {
   els.scheduleDateInput.value = toDateInputValue(date);
   els.scheduleTimeInput.value = toTimeInputValue(date);
   els.scheduleStatusText.textContent = `Students can see this lesson from ${formatSchedule(timestamp)}.`;
+  renderSchedulePreview();
 }
 
 function saveScheduleFromModal() {
@@ -1076,6 +1083,9 @@ function saveScheduleFromModal() {
 
   const scheduledLessons = scheduleLessonSequence(lessonId, timestamp, 3);
   saveLessonSchedule();
+  renderScheduleOptions();
+  els.scheduleLessonSelect.value = lessonId;
+  fillScheduleInputs(lessonId);
   normalizeLessonIndex();
   render();
   els.scheduleModal.close();
@@ -1092,15 +1102,46 @@ function clearScheduleFromModal() {
   showToast("Lesson hidden from students.");
 }
 
-function scheduleLessonSequence(lessonId, startTimestamp, followUpCount) {
+function getLessonSequence(lessonId, followUpCount) {
   const startIndex = state.lessons.findIndex((lesson) => lesson.id === lessonId);
-  if (startIndex < 0) return 0;
+  if (startIndex < 0) return [];
 
-  const lessonsToSchedule = state.lessons.slice(startIndex, startIndex + followUpCount + 1);
+  return state.lessons.slice(startIndex, startIndex + followUpCount + 1);
+}
+
+function scheduleLessonSequence(lessonId, startTimestamp, followUpCount) {
+  const lessonsToSchedule = getLessonSequence(lessonId, followUpCount);
+
   lessonsToSchedule.forEach((lesson, offset) => {
     state.lessonSchedule[lesson.id] = addDays(startTimestamp, offset);
   });
   return lessonsToSchedule.length;
+}
+
+function renderSchedulePreview() {
+  const lessonId = els.scheduleLessonSelect.value;
+  const lessonsToSchedule = getLessonSequence(lessonId, 3);
+  const hasDraftTime = els.scheduleDateInput.value && els.scheduleTimeInput.value;
+  const startTimestamp = hasDraftTime
+    ? new Date(`${els.scheduleDateInput.value}T${els.scheduleTimeInput.value}`).getTime()
+    : NaN;
+
+  if (lessonsToSchedule.length === 0) {
+    els.schedulePreview.innerHTML = "";
+    return;
+  }
+
+  els.schedulePreview.innerHTML = lessonsToSchedule.map((lesson, offset) => {
+    const label = Number.isFinite(startTimestamp)
+      ? formatSchedule(addDays(startTimestamp, offset))
+      : getScheduleStateLabel(lesson);
+    return `
+      <div>
+        <strong>${escapeHTML(lesson.title)}</strong>
+        <span>${escapeHTML(label)}</span>
+      </div>
+    `;
+  }).join("");
 }
 
 function addDays(timestamp, days) {
@@ -1205,6 +1246,8 @@ document.querySelector("#openAssignmentBtn").addEventListener("click", openAssig
 document.querySelector("#switchAccountBtn").addEventListener("click", signOut);
 document.querySelector("#scheduleLessonBtn").addEventListener("click", openScheduleModal);
 document.querySelector("#scheduleLessonSelect").addEventListener("change", (event) => fillScheduleInputs(event.target.value));
+document.querySelector("#scheduleDateInput").addEventListener("input", renderSchedulePreview);
+document.querySelector("#scheduleTimeInput").addEventListener("input", renderSchedulePreview);
 document.querySelector("#saveScheduleBtn").addEventListener("click", saveScheduleFromModal);
 document.querySelector("#clearScheduleBtn").addEventListener("click", clearScheduleFromModal);
 els.gateModal.addEventListener("cancel", (event) => {
