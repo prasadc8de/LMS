@@ -1,15 +1,3 @@
-const siteAuthConfig = {
-  allowedEmails: {
-    students: [
-      "aishurao2021@gmail.com",
-      "prasadc4de@gmail.com"
-    ],
-    teachers: [
-      "prasadboyane@gmail.com"
-    ]
-  }
-};
-
 const firebaseConfig = {
   apiKey: "AIzaSyCQNCEc4YyZDqJbK_V6QeFxj7LpiYBzO2Q",
   authDomain: "pbde-lms.firebaseapp.com",
@@ -20,328 +8,27 @@ const firebaseConfig = {
   measurementId: "G-TGZPE43QMH"
 };
 
-const firebaseSchedulePath = {
-  collection: "lms",
-  document: "lessonSchedule"
+const firebasePaths = {
+  catalog: {
+    collection: "lms",
+    document: "courseCatalog"
+  },
+  schedule: {
+    collection: "lms",
+    document: "lessonSchedule"
+  },
+  users: "users"
 };
 
-const appBuildVersion = "20260715-firebase-auth-v2";
+const appBuildVersion = "20260716-firestore-catalog-v1";
 if (localStorage.getItem("appBuildVersion") !== appBuildVersion) {
   localStorage.removeItem("signedInUser");
+  localStorage.removeItem("courseTopics");
+  localStorage.removeItem("lessons");
+  localStorage.removeItem("lessonCatalogVersion");
+  localStorage.removeItem("lessonSchedule");
   localStorage.setItem("appBuildVersion", appBuildVersion);
 }
-
-const classroomTopics = [
-  {
-    id: "python",
-    title: "Python",
-    url: "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2NTA2OTY2"
-  },
-  {
-    id: "sql",
-    title: "SQL",
-    url: "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2NDE1NTAz"
-  },
-  {
-    id: "google-cloud",
-    title: "Google Cloud",
-    url: "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2MzY5MTMy"
-  },
-  {
-    id: "placement-training",
-    title: "Placement Training",
-    url: "https://classroom.google.com/w/ODMxNzMzNTA1MjY4/tc/ODIxMDA2NDUzODQ2"
-  },
-];
-const classroomAssignmentUrl = classroomTopics[0].url;
-const lessonCatalogVersion = "2026-07-15-role-schedule-v7";
-
-const taskNotes = [
-  "Make videos on every question / concept and upload on YouTube.",
-  "Solve questions in video / assignments and submit in Classroom.",
-  "Write queries in the QnA Sheet.",
-  "Complete the daily mock interview session."
-];
-
-const defaultLessons = [
-  buildLesson({
-    id: "python-lecture-1",
-    title: "Watch Python Lecture 1",
-    videoId: "SxZ4LRkxPyk",
-    focus: "Python Lecture 1",
-    quizA: "What should you create after solving each Lecture 1 question or concept?",
-    answerA: "A short YouTube explanation video",
-    quizB: "Where should your solved assignment work be submitted?",
-    answerB: "Google Classroom"
-  }),
-  buildLesson({
-    id: "python-lecture-2",
-    title: "Watch Python Lecture 2",
-    videoId: "gjdsIoA88JU",
-    focus: "Python Lecture 2",
-    quizA: "What is the best habit while following the Lecture 2 examples?",
-    answerA: "Pause and solve the example yourself",
-    quizB: "Where should questions from this lesson be captured?",
-    answerB: "QnA Sheet"
-  }),
-  buildLesson({
-    id: "python-lecture-3",
-    title: "Watch Python Lecture 3",
-    videoId: "UKq_6n96Z-0",
-    focus: "Python Lecture 3",
-    quizA: "What should you do before moving past a confusing Lecture 3 concept?",
-    answerA: "Write the query and revisit the timestamp",
-    quizB: "What confirms you practiced the video questions?",
-    answerB: "A Classroom submission"
-  }),
-  buildLesson({
-    id: "python-lecture-4",
-    title: "Watch Python Lecture 4",
-    videoId: "WDW9Dxi5lO4",
-    focus: "Python Lecture 4",
-    quizA: "What should your Lecture 4 notes capture first?",
-    answerA: "The rule or pattern used in the example",
-    quizB: "What should you complete along with the video assignment?",
-    answerB: "Daily mock interview session"
-  }),
-  buildLesson({
-    id: "python-lecture-5",
-    title: "Watch Python Lecture 5",
-    videoId: "1bgpbl9Yj88",
-    focus: "Python Lecture 5",
-    quizA: "How should you handle each new Lecture 5 concept?",
-    answerA: "Explain it in your own words",
-    quizB: "Which upload proves your explanation practice?",
-    answerB: "YouTube concept video"
-  }),
-  buildLesson({
-    id: "python-lecture-6",
-    title: "Watch Python Lecture 6",
-    videoId: "P9ywHK_IvUc",
-    focus: "Python Lecture 6",
-    quizA: "What is the expected action after solving a Lecture 6 problem?",
-    answerA: "Record and upload the explanation",
-    quizB: "Where should the final solved work be submitted?",
-    answerB: "Google Classroom"
-  }),
-  buildLesson({
-    id: "python-lecture-7",
-    title: "Watch Python Lecture 7",
-    videoId: "UHP2wyxdRuQ",
-    focus: "Python Lecture 7",
-    quizA: "What should you do if Lecture 7 raises a doubt?",
-    answerA: "Add it to the QnA Sheet",
-    quizB: "What classroom routine should be completed daily?",
-    answerB: "Mock interview session"
-  }),
-  buildLesson({
-    id: "python-lecture-8",
-    title: "Watch Python Lecture 8",
-    videoId: "3HAUfCQEJ8g",
-    focus: "Python Lecture 8",
-    quizA: "What should you focus on while watching Lecture 8?",
-    answerA: "The steps in each worked example",
-    quizB: "What is required before marking the lesson complete?",
-    answerB: "Assignment submission in Classroom"
-  }),
-  buildLesson({
-    id: "python-lecture-9",
-    title: "Watch Python Lecture 9",
-    videoId: "abFXQSo3Lx0",
-    focus: "Python Lecture 9",
-    quizA: "What should you produce for every important Lecture 9 concept?",
-    answerA: "A YouTube explanation video",
-    quizB: "Where do unresolved doubts belong?",
-    answerB: "QnA Sheet"
-  }),
-  buildLesson({
-    id: "python-lecture-10-api",
-    title: "Watch Python Lecture 10: API",
-    videoId: "AqOsJQOxp1w",
-    focus: "Lecture 10 API section",
-    extraNotes: ["API video: https://youtu.be/AqOsJQOxp1w"],
-    assignmentTitle: "Watch Python Lecture 10",
-    quizA: "What should you identify first in the API section?",
-    answerA: "The request and response flow",
-    quizB: "Where should API practice work be submitted?",
-    answerB: "Google Classroom"
-  }),
-  buildLesson({
-    id: "python-lecture-10-mysql",
-    title: "Watch Python Lecture 10: MySQL Connectivity",
-    videoId: "-Po8PQsgad8",
-    focus: "Lecture 10 MySQL Connectivity section",
-    extraNotes: ["MySQL Connectivity video: https://youtu.be/-Po8PQsgad8"],
-    assignmentTitle: "Watch Python Lecture 10",
-    quizA: "What should you verify when practicing MySQL connectivity?",
-    answerA: "The connection and query result",
-    quizB: "Where should connectivity doubts be recorded?",
-    answerB: "QnA Sheet"
-  }),
-  buildLesson({
-    id: "python-lecture-10-selenium",
-    title: "Watch Python Lecture 10: Selenium",
-    videoId: "euEnBa-AKZ0",
-    focus: "Lecture 10 Selenium section",
-    extraNotes: ["Selenium video: https://youtu.be/euEnBa-AKZ0"],
-    assignmentTitle: "Watch Python Lecture 10",
-    quizA: "What should you observe first in the Selenium section?",
-    answerA: "The browser action being automated",
-    quizB: "What evidence should you prepare after practice?",
-    answerB: "A solved assignment or explanation video"
-  }),
-  buildLesson({
-    id: "python-lecture-11",
-    title: "Watch Python Lecture 11",
-    videoId: "2MG9fgTI4Ww",
-    focus: "Python Lecture 11",
-    quizA: "What should you do with every Lecture 11 question or concept?",
-    answerA: "Make a video explanation",
-    quizB: "What should happen after solving the assignment?",
-    answerB: "Submit it in Classroom"
-  }),
-  buildLesson({
-    id: "python-lecture-12",
-    title: "Watch Python Lecture 12",
-    videoId: "aJzmP56uFvI",
-    focus: "Python Lecture 12",
-    quizA: "How should you close out Lecture 12 practice?",
-    answerA: "Submit solved work and questions",
-    quizB: "Which routine helps check interview readiness?",
-    answerB: "Daily mock interview session"
-  }),
-  {
-    id: "data-marathon-python",
-    playlistId: "python",
-    title: "Data Marathon: Python",
-    subtitle: "Marathon overview + hacking sheet",
-    videoId: "jCDIYPMWWzA",
-    intervalSeconds: 0,
-    assignmentTitle: "Data Marathon: Python",
-    assignmentUrl: classroomAssignmentUrl,
-    notes: [
-      "Marathon overview video: https://youtu.be/jCDIYPMWWzA",
-      "Hacking Sheet: https://docs.google.com/document/d/1TdPVBtqhj37qb2NJFR_cmSNR0XLoZ03dl8vsnKBq9Rg/edit?usp=sharing",
-      "Submission Folder: C7-DE / Data Marathon"
-    ],
-    checkpoints: [
-      {
-        id: "data-marathon-python-gate-30",
-        time: 30,
-        type: "quiz",
-        title: "Marathon Overview",
-        prompt: "What should you review before starting the Data Marathon work?",
-        options: ["The marathon overview and hacking sheet", "Only the due date", "A different course", "The browser theme"],
-        answer: "The marathon overview and hacking sheet"
-      },
-      {
-        id: "data-marathon-python-gate-90",
-        time: 90,
-        type: "quiz",
-        title: "Submission Folder",
-        prompt: "Which folder is listed for Data Marathon submissions?",
-        options: ["C7-DE / Data Marathon", "C7-DE / Lecture 1", "Personal Downloads", "Archived Classes"],
-        answer: "C7-DE / Data Marathon"
-      },
-      {
-        id: "data-marathon-python-gate-150",
-        time: 150,
-        type: "assignment",
-        title: "Submit Marathon Work",
-        prompt: "Submit your Data Marathon work in Google Classroom and the listed submission folder."
-      }
-    ]
-  },
-
-  ...buildTopicLessons({
-    playlistId: "sql",
-    assignments: [
-      { title: "Watch SQL Lecture 15", videos: ["zvJfCX9Nz58"] },
-      { title: "Watch SQL Lecture 14", videos: ["1S8bNF3YuyY", "2IgZLPbbzvI"] },
-      { title: "Watch SQL Lecture 13", videos: ["yiT9_upN7MQ", "BeWzrlnxsYA", "1pqLsqiGydg", "weHozvX77mg", "dp7Inof3AYU"] },
-      {
-        title: "Watch SQL Lecture 12",
-        videos: ["n4wzLiEl7ns"],
-        references: ["Reference sheet: https://docs.google.com/spreadsheets/d/138jK5qmlp920kWeVradQpWibDQV58L_183H_xJFONns/edit?usp=sharing"]
-      },
-      { title: "Watch SQL Lecture 11", videos: ["rA66H9QJsdc"] },
-      {
-        title: "Watch SQL Lecture 10",
-        videos: ["Cw8WvKu9g4Y", "ngpsadW9Z8U", "ZLWt2ZttEqw"],
-        references: ["Reference: https://learnsql.com/blog/sql-subquery-cte-difference/"]
-      },
-      { title: "Watch SQL Lecture 9", videos: ["WUYcfXH3oPM", "NXmtEqjpXWI"] },
-      { title: "Watch SQL Lecture 8", videos: ["a5qXGAxeiTo"] },
-      { title: "Watch SQL Lecture 7", videos: ["JjzxPyGc0_c"] }
-    ]
-  }),
-  ...buildTopicLessons({
-    playlistId: "google-cloud",
-    assignments: [
-      { title: "Watch Google Cloud Lecture 9", videos: ["NW0BhtOpsq0", "45f4EE-1mTE", "gzDsUtkrxMw"] },
-      { title: "Weekly Session Revision", videos: ["SafqCmSNhdM"], tasks: ["Revise everything.", "Write queries in the QnA Sheet.", "Complete the daily mock interview session."] },
-      { title: "Watch Google Cloud Lecture 8", videos: ["WmFfvQV-h8g"] },
-      { title: "Watch Google Cloud Lecture 7", videos: ["ReuEJaS90zw"] },
-      { title: "Watch Google Cloud Lecture 6", videos: ["jMsj2_cyGCw", "PqGqmzLYb8A", "4Wp_r8igV00"] },
-      {
-        title: "Watch Google Cloud Lecture 5",
-        videos: ["02RN4G4xxMc"],
-        references: ["Practice form: https://forms.gle/FMyD6myTAgka4U146"]
-      },
-      { title: "Watch Google Cloud Lecture 4", videos: ["m8v1aJICY9o"] },
-      { title: "Watch Google Cloud Lecture 3", videos: ["XIPj3sLErq0"] },
-      { title: "Watch Google Cloud Lecture 2", videos: ["oT-cNhLZOmE"] },
-      {
-        title: "Watch Google Cloud Lecture 1",
-        videos: ["atc8r7ui4es"],
-        references: ["Practice form: https://forms.gle/FMyD6myTAgka4U146"]
-      }
-    ]
-  }),
-  ...buildTopicLessons({
-    playlistId: "placement-training",
-    assignments: [
-      {
-        title: "Watch Placement Prep Lecture 7",
-        videos: ["HXxa9YQJ2Lo", "TB5aj0wbo74", "APCm1VMIL6Y"],
-        tasks: ["Record a 60 second introduction and upload it on YouTube.", "Solve video or assignment questions and submit in Classroom.", "Watch and record the HR call scripts.", "Complete the daily mock interview session."]
-      },
-      {
-        title: "Watch Placement Prep Lecture 6",
-        videos: ["wWKu5xtMisU", "YNBaXJ2mRjU", "VCrqZBcdPKY"],
-        references: ["Practice form: https://forms.gle/Jxx6UFdEufbnRtW27"]
-      },
-      { title: "Watch Placement Prep Lecture 5", videos: ["-g1dPftuuWE", "LIXfbTGJisg"] },
-      { title: "Watch Placement Prep Lecture 4", videos: ["pIM4Pszt9B4", "Lft_bS3iYHw", "Nc6SBJsuSAQ"] },
-      {
-        title: "Watch Placement Prep Lecture 3",
-        videos: ["n5BttuJQp_A", "VolGD85_0Do"],
-        references: ["Study document: https://docs.google.com/document/d/1FsOk1pokuGMHVkggc37oPR6xWTEiXU8Q01T7aNPrjFE/edit?usp=sharing"]
-      },
-      {
-        title: "Watch Placement Prep Lecture 2",
-        videos: ["mJHwRVAuhhc", "9SpVbXvth8g"],
-        references: ["Naukri/profile document: https://docs.google.com/document/d/1n9Bq-8n9uiQ6YiDW-E2jTcfUp9SpzYLLFXLrjVYd4N0/edit?usp=sharing"],
-        tasks: ["Make a video on your introduction and upload it on YouTube.", "Share Naukri profile screenshots and submit in Classroom.", "Write queries in the QnA Sheet.", "Complete the daily mock interview session."]
-      },
-      {
-        title: "Watch Placement Prep Lecture 1",
-        videos: ["_b0NCq01Vvw", "VCrqZBcdPKY"],
-        references: [
-          "Resume template: https://www.canva.com/templates/EAF0xAJK5wU-blue-and-white-professional-resume/",
-          "Resume design: https://www.canva.com/design/DAGWJnn9c3k/RyUSm_lUXgy2qJcZGEU_0g/view?utm_content=DAGWJnn9c3k&utm_campaign=designshare&utm_medium=link&utm_source=editor",
-          "Practice form: https://forms.gle/Jxx6UFdEufbnRtW27"
-        ],
-        tasks: ["Make a video on your introduction and upload it on YouTube.", "Prepare long and short intro scripts and upload them in Drive.", "Write queries in the QnA Sheet.", "Complete the daily mock interview session."]
-      }
-    ]
-  })
-];
-const savedAuthConfig = readJSON("authConfig", {});
-const authConfig = {
-  allowedEmails: normalizeAllowedEmails(siteAuthConfig.allowedEmails || savedAuthConfig.allowedEmails || {})
-};
-const shouldResetLessonState = localStorage.getItem("lessonCatalogVersion") !== lessonCatalogVersion;
 
 const state = {
   player: null,
@@ -350,13 +37,15 @@ const state = {
   firebaseAuth: null,
   firebaseReady: false,
   firebaseAuthResolved: false,
+  catalogLoaded: false,
   activeGate: null,
   currentLessonIndex: Number(localStorage.getItem("currentLessonIndex") || 0),
-  user: readJSON("signedInUser", null),
-  lessonState: shouldResetLessonState ? {} : readJSON("lessonState", {}),
-  lessons: getStoredLessons(),
+  user: null,
+  lessonState: readJSON("lessonState", {}),
+  topics: [],
+  lessons: [],
   openPlaylists: readJSON("openPlaylists", { python: true }),
-  lessonSchedule: readJSON("lessonSchedule", {})
+  lessonSchedule: {}
 };
 
 const els = {
@@ -460,36 +149,35 @@ async function handleFirebaseGoogleSignIn() {
     const provider = new window.firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
     const result = await state.firebaseAuth.signInWithPopup(provider);
-    applySignedInProfile(result.user);
+    await applySignedInProfile(result.user);
   } catch (error) {
     console.warn("Firebase Google sign-in failed", error);
     showAuthError(getFirebaseAuthMessage(error));
   }
 }
 
-function applySignedInProfile(profile) {
+async function applySignedInProfile(profile) {
   if (!profile?.email || profile.emailVerified === false) {
-    state.firebaseAuth?.signOut();
+    await state.firebaseAuth?.signOut();
     showAuthError("Google did not return a verified Gmail account.");
     return;
   }
 
-  const email = profile.email.toLowerCase();
-  const role = getUserRole(email);
-  if (!role) {
-    state.firebaseAuth?.signOut();
+  const userRecord = await loadUserRecord(profile.email);
+  if (!userRecord?.active || !userRecord.role) {
+    await state.firebaseAuth?.signOut();
     showAuthError(`${profile.email} is not enrolled in this LMS.`);
     return;
   }
 
   state.user = {
-    email: profile.email,
+    email: userRecord.email || profile.email,
     name: profile.displayName || profile.name || profile.email,
     picture: profile.photoURL || profile.picture || "",
-    role
+    role: userRecord.role
   };
-  localStorage.setItem("signedInUser", JSON.stringify(state.user));
-  loadLessonScheduleFromCloud();
+  await loadCourseCatalogFromCloud();
+  await loadLessonScheduleFromCloud();
   normalizeLessonIndex();
   renderAuthState();
   render();
@@ -498,10 +186,9 @@ function applySignedInProfile(profile) {
 
 function renderAuthState() {
   if (state.user?.email) {
-    state.user.role = state.user.role || getUserRole(state.user.email);
     if (!state.user.role) {
       state.user = null;
-      localStorage.removeItem("signedInUser");
+      clearPrivateSessionData();
       els.authGate.classList.remove("hidden");
       els.studentEmail.textContent = "Not signed in";
       els.scheduleLessonBtn.classList.add("hidden");
@@ -703,7 +390,16 @@ function render() {
 }
 
 function renderLessonList() {
-  els.lessonList.innerHTML = classroomTopics.map((playlist) => {
+  if (state.user?.email && state.topics.length === 0) {
+    els.lessonList.innerHTML = `
+      <section class="playlist-group">
+        <div class="empty-playlist-link">Loading course catalog...</div>
+      </section>
+    `;
+    return;
+  }
+
+  els.lessonList.innerHTML = state.topics.map((playlist) => {
     const lessons = getVisibleLessonEntries()
       .filter(({ lesson }) => lesson.playlistId === playlist.id);
     const isOpen = Boolean(state.openPlaylists[playlist.id]);
@@ -751,11 +447,11 @@ function renderLessonList() {
 }
 
 function getPlaylistTitle(playlistId) {
-  return classroomTopics.find((playlist) => playlist.id === playlistId)?.title || "Private Video Series";
+  return state.topics.find((playlist) => playlist.id === playlistId)?.title || "Private Video Series";
 }
 
 function getPlaylistUrl(playlistId) {
-  return classroomTopics.find((playlist) => playlist.id === playlistId)?.url || classroomAssignmentUrl;
+  return state.topics.find((playlist) => playlist.id === playlistId)?.url || "#";
 }
 
 function getLessonAssignmentUrl(lesson) {
@@ -922,13 +618,7 @@ function saveLessonState() {
   localStorage.setItem("lessonState", JSON.stringify(state.lessonState));
 }
 
-function saveLessons() {
-  localStorage.setItem("lessons", JSON.stringify(state.lessons));
-  localStorage.setItem("lessonCatalogVersion", lessonCatalogVersion);
-}
-
 async function saveLessonSchedule() {
-  localStorage.setItem("lessonSchedule", JSON.stringify(state.lessonSchedule));
   if (!state.firestore) {
     return {
       synced: false,
@@ -944,8 +634,8 @@ async function saveLessonSchedule() {
 
   try {
     await state.firestore
-      .collection(firebaseSchedulePath.collection)
-      .doc(firebaseSchedulePath.document)
+      .collection(firebasePaths.schedule.collection)
+      .doc(firebasePaths.schedule.document)
       .set({
         schedule: state.lessonSchedule,
         updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
@@ -991,14 +681,13 @@ function initializeFirebaseSync() {
 
         if (state.user?.email) {
           state.user = null;
-          localStorage.removeItem("signedInUser");
+          clearPrivateSessionData();
           renderAuthState();
           render();
         }
       });
     }
     state.firebaseReady = true;
-    loadLessonScheduleFromCloud();
   } catch (error) {
     state.firestore = null;
     state.firebaseReady = false;
@@ -1011,18 +700,57 @@ async function loadLessonScheduleFromCloud() {
 
   try {
     const snapshot = await state.firestore
-      .collection(firebaseSchedulePath.collection)
-      .doc(firebaseSchedulePath.document)
+      .collection(firebasePaths.schedule.collection)
+      .doc(firebasePaths.schedule.document)
       .get();
     const data = snapshot.exists ? snapshot.data() : null;
     if (data?.schedule && typeof data.schedule === "object") {
       state.lessonSchedule = data.schedule;
-      localStorage.setItem("lessonSchedule", JSON.stringify(state.lessonSchedule));
       normalizeLessonIndex();
       render();
     }
     return true;
   } catch (error) {
+    return false;
+  }
+}
+
+async function loadUserRecord(email) {
+  if (!state.firestore || !email) return null;
+
+  try {
+    const snapshot = await state.firestore
+      .collection(firebasePaths.users)
+      .doc(email.toLowerCase())
+      .get();
+    return snapshot.exists ? snapshot.data() : null;
+  } catch (error) {
+    console.warn("User role lookup failed", error);
+    return null;
+  }
+}
+
+async function loadCourseCatalogFromCloud() {
+  if (!state.firestore) return false;
+
+  try {
+    const snapshot = await state.firestore
+      .collection(firebasePaths.catalog.collection)
+      .doc(firebasePaths.catalog.document)
+      .get();
+    const data = snapshot.exists ? snapshot.data() : null;
+    if (!Array.isArray(data?.topics) || !Array.isArray(data?.lessons)) {
+      showToast("Course catalog is not configured.");
+      return false;
+    }
+
+    state.topics = data.topics;
+    state.lessons = data.lessons;
+    state.catalogLoaded = true;
+    return true;
+  } catch (error) {
+    console.warn("Course catalog load failed", error);
+    showToast("Could not load course catalog.");
     return false;
   }
 }
@@ -1071,131 +799,12 @@ function formatSchedule(timestamp) {
   }).format(new Date(timestamp));
 }
 
-function normalizeAllowedEmails(value) {
-  if (Array.isArray(value)) {
-    return {
-      students: value.map((email) => email.toLowerCase()),
-      teachers: []
-    };
-  }
-
-  return {
-    students: (value.students || []).map((email) => email.toLowerCase()),
-    teachers: (value.teachers || []).map((email) => email.toLowerCase())
-  };
-}
-
-function getUserRole(email) {
-  const normalizedEmail = email.toLowerCase();
-  if (authConfig.allowedEmails.teachers.includes(normalizedEmail)) return "teacher";
-  if (authConfig.allowedEmails.students.includes(normalizedEmail)) return "student";
-  return "";
-}
-
 function isTeacher() {
   return state.user?.role === "teacher";
 }
 
 function getRoleLabel() {
   return isTeacher() ? "Teacher" : "Student";
-}
-
-function buildTopicLessons(config) {
-  const playlist = classroomTopics.find((item) => item.id === config.playlistId);
-  return config.assignments.flatMap((assignment) => {
-    return assignment.videos.map((videoId, index) => {
-      const hasParts = assignment.videos.length > 1;
-      const lessonTitle = hasParts ? `${assignment.title}: Part ${index + 1}` : assignment.title;
-      const cleanId = `${config.playlistId}-${assignment.title}-${index + 1}`
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
-      const notes = [
-        `Video: https://youtu.be/${videoId}`,
-        ...(assignment.references || []),
-        ...(assignment.tasks || taskNotes)
-      ];
-
-      return buildLesson({
-        id: cleanId,
-        playlistId: config.playlistId,
-        title: lessonTitle,
-        videoId,
-        focus: assignment.title,
-        assignmentTitle: assignment.title,
-        assignmentUrl: playlist.url,
-        notes,
-        quizA: `What should you focus on while watching ${assignment.title}?`,
-        answerA: "Understand the concept and practice it yourself",
-        quizB: `Where should work for ${assignment.title} be completed or submitted?`,
-        answerB: "Google Classroom"
-      });
-    });
-  });
-}
-
-function buildLesson(config) {
-  const assignmentTitle = config.assignmentTitle || config.title;
-  const playlistId = config.playlistId || "python";
-  return {
-    id: config.id,
-    playlistId,
-    title: config.title,
-    subtitle: `${config.focus} + Classroom assignment`,
-    videoId: config.videoId,
-    intervalSeconds: 0,
-    assignmentTitle,
-    assignmentUrl: config.assignmentUrl || getPlaylistUrl(playlistId),
-    notes: config.notes || [
-      `Video: https://youtu.be/${config.videoId}`,
-      ...(config.extraNotes || []),
-      ...taskNotes
-    ],
-    checkpoints: [
-      {
-        id: `${config.id}-gate-30`,
-        time: 30,
-        type: "quiz",
-        title: "Focus Check",
-        prompt: config.quizA,
-        options: shuffleChoices([
-          config.answerA,
-          "Skip the example and continue",
-          "Only watch without taking action",
-          "Use another student's submission"
-        ]),
-        answer: config.answerA
-      },
-      {
-        id: `${config.id}-gate-90`,
-        time: 90,
-        type: "quiz",
-        title: "Task Check",
-        prompt: config.quizB,
-        options: shuffleChoices([
-          config.answerB,
-          "Keep it only on your desktop",
-          "Ignore the assignment notes",
-          "Wait until the course ends"
-        ]),
-        answer: config.answerB
-      },
-      {
-        id: `${config.id}-gate-150`,
-        time: 150,
-        type: "assignment",
-        title: "Classroom Submission",
-        prompt: `Complete the ${assignmentTitle} work, then submit or update it in Google Classroom.`
-      }
-    ]
-  };
-}
-
-function shuffleChoices(choices) {
-  const [answer, ...rest] = choices;
-  const rotation = answer.length % choices.length;
-  const mixed = [...rest.slice(rotation), answer, ...rest.slice(0, rotation)];
-  return mixed;
 }
 
 function openAssignment() {
@@ -1332,7 +941,7 @@ function toTimeInputValue(date) {
 
 function signOut() {
   state.user = null;
-  localStorage.removeItem("signedInUser");
+  clearPrivateSessionData();
   if (state.player) {
     state.player.pauseVideo();
   }
@@ -1343,22 +952,19 @@ function signOut() {
   showToast("Signed out.");
 }
 
-function getStoredLessons() {
-  if (shouldResetLessonState) {
-    localStorage.setItem("lessons", JSON.stringify(defaultLessons));
-    localStorage.setItem("lessonCatalogVersion", lessonCatalogVersion);
-    localStorage.removeItem("lessonState");
-    return defaultLessons;
-  }
-
-  return readJSON("lessons", defaultLessons);
+function clearPrivateSessionData() {
+  state.topics = [];
+  state.lessons = [];
+  state.lessonSchedule = {};
+  state.catalogLoaded = false;
+  localStorage.removeItem("signedInUser");
+  localStorage.removeItem("courseTopics");
+  localStorage.removeItem("lessons");
+  localStorage.removeItem("lessonCatalogVersion");
+  localStorage.removeItem("lessonSchedule");
 }
 
 function normalizeLessonIndex() {
-  if (state.user?.email && !state.user.role) {
-    state.user.role = getUserRole(state.user.email);
-  }
-
   const visibleEntries = getVisibleLessonEntries();
   const currentIsVisible = visibleEntries.some(({ index }) => index === state.currentLessonIndex);
 

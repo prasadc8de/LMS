@@ -1,12 +1,14 @@
-# Firebase schedule sync setup
+# Firebase LMS data setup
 
-This app can sync lesson schedules across devices with Cloud Firestore.
+This app loads private LMS data from Cloud Firestore instead of shipping it in `app.js`.
 
 ## Completed app setup
 
 - Firebase project: `pbde-lms`
 - Firebase Web app: `ClassGate LMS`
+- Firestore catalog document: `lms/courseCatalog`
 - Firestore schedule document: `lms/lessonSchedule`
+- Firestore users collection: `users/{gmail}`
 - Rules file: `firestore.rules`
 
 ## Required Firebase console setup
@@ -25,4 +27,20 @@ After logging in to the Firebase CLI once, rules can be deployed with:
 npx firebase-tools deploy --only firestore:rules --project pbde-lms
 ```
 
-Students read this document on page load. Teachers write it when they schedule lessons.
+## Firestore data model
+
+- `lms/courseCatalog`: course topics, lesson metadata, video IDs, notes, and checkpoint questions.
+- `lms/lessonSchedule`: lesson publish timestamps.
+- `users/{gmail}`: one document per Gmail, with `email`, `role`, and `active`.
+
+Example user document:
+
+```json
+{
+  "email": "learner@example.com",
+  "role": "student",
+  "active": true
+}
+```
+
+Use `role: "teacher"` for teacher accounts. Active students and teachers can read the catalog and schedule; only teachers can write catalog/schedule data.
