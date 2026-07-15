@@ -919,17 +919,30 @@ async function saveLessonSchedule() {
   if (!state.firestore) return false;
 
   try {
-    await state.firestore
-      .collection(firebaseSchedulePath.collection)
-      .doc(firebaseSchedulePath.document)
-      .set({
-        schedule: state.lessonSchedule,
-        updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
+    await withTimeout(
+      state.firestore
+        .collection(firebaseSchedulePath.collection)
+        .doc(firebaseSchedulePath.document)
+        .set({
+          schedule: state.lessonSchedule,
+          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }),
+      5000
+    );
     return true;
   } catch (error) {
+    console.warn("Firebase schedule sync failed", error);
     return false;
   }
+}
+
+function withTimeout(promise, timeoutMs) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      window.setTimeout(() => reject(new Error("Firebase sync timed out")), timeoutMs);
+    })
+  ]);
 }
 
 function hasFirebaseConfig() {
@@ -1188,24 +1201,30 @@ async function saveScheduleFromModal() {
   }
 
   const scheduledLessons = scheduleLessonSequence(lessonId, timestamp, 3);
-  const synced = await saveLessonSchedule();
+  localStorage.setItem("lessonSchedule", JSON.stringify(state.lessonSchedule));
   renderScheduleOptions();
   els.scheduleLessonSelect.value = lessonId;
   fillScheduleInputs(lessonId);
   normalizeLessonIndex();
   render();
   els.scheduleModal.close();
-  showToast(`${scheduledLessons} lesson${scheduledLessons === 1 ? "" : "s"} scheduled${synced ? " and synced" : " locally"}.`);
+  showToast(`${scheduledLessons} lesson${scheduledLessons === 1 ? "" : "s"} scheduled. Syncing...`);
+
+  const synced = await saveLessonSchedule();
+  showToast(synced ? "Schedule synced to Firebase." : "Schedule saved locally. Firebase sync needs Auth/rules check.");
 }
 
 async function clearScheduleFromModal() {
   const lessonId = els.scheduleLessonSelect.value;
   delete state.lessonSchedule[lessonId];
-  const synced = await saveLessonSchedule();
+  localStorage.setItem("lessonSchedule", JSON.stringify(state.lessonSchedule));
   normalizeLessonIndex();
   render();
   els.scheduleModal.close();
-  showToast(`Lesson hidden${synced ? " and synced" : " locally"}.`);
+  showToast("Lesson hidden. Syncing...");
+
+  const synced = await saveLessonSchedule();
+  showToast(synced ? "Schedule synced to Firebase." : "Schedule saved locally. Firebase sync needs Auth/rules check.");
 }
 
 function getLessonSequence(lessonId, followUpCount) {
