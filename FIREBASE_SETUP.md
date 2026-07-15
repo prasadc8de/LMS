@@ -2,20 +2,27 @@
 
 This app can sync lesson schedules across devices with Cloud Firestore.
 
-1. Create a Firebase project on the Spark plan.
-2. Add a Web app in Firebase project settings.
-3. Copy the Firebase config object into `firebaseConfig` at the top of `app.js`.
-4. Create a Firestore database.
-5. Publish the rules in `firestore.rules`.
-6. Add these authorized domains in Firebase Authentication:
+## Completed app setup
+
+- Firebase project: `pbde-lms`
+- Firebase Web app: `ClassGate LMS`
+- Firestore schedule document: `lms/lessonSchedule`
+- Rules file: `firestore.rules`
+
+## Required Firebase console setup
+
+1. Create a Firestore database in production mode.
+2. Enable Firebase Authentication > Sign-in method > Google.
+3. Add these authorized domains in Firebase Authentication:
    - `prasadc8de.github.io`
    - `127.0.0.1`
    - `localhost`
+4. Publish the rules in `firestore.rules`.
 
-The schedule is stored at:
+After logging in to the Firebase CLI once, rules can be deployed with:
 
-```text
-lms/lessonSchedule
+```bash
+npx firebase-tools deploy --only firestore:rules --project pbde-lms
 ```
 
 Students read this document on page load. Teachers write it when they schedule lessons.

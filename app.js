@@ -12,10 +12,13 @@ const siteAuthConfig = {
 };
 
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  appId: ""
+  apiKey: "AIzaSyCQNCEc4YyZDqJbK_V6QeFxj7LpiYBzO2Q",
+  authDomain: "pbde-lms.firebaseapp.com",
+  projectId: "pbde-lms",
+  storageBucket: "pbde-lms.firebasestorage.app",
+  messagingSenderId: "138158464844",
+  appId: "1:138158464844:web:4cfb4ec494a447250b79e9",
+  measurementId: "G-TGZPE43QMH"
 };
 
 const firebaseSchedulePath = {
