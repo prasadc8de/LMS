@@ -1,5 +1,4 @@
 const siteAuthConfig = {
-  googleClientId: "1310085727-91rrgsf6ck7d03r2fqu7e2ro4orbc4kf.apps.googleusercontent.com",
   allowedEmails: {
     students: [
       "aishurao2021@gmail.com",
@@ -334,7 +333,6 @@ const defaultLessons = [
 ];
 const savedAuthConfig = readJSON("authConfig", {});
 const authConfig = {
-  googleClientId: siteAuthConfig.googleClientId || savedAuthConfig.googleClientId || "",
   allowedEmails: normalizeAllowedEmails(siteAuthConfig.allowedEmails || savedAuthConfig.allowedEmails || {})
 };
 const shouldResetLessonState = localStorage.getItem("lessonCatalogVersion") !== lessonCatalogVersion;
@@ -345,6 +343,7 @@ const state = {
   firestore: null,
   firebaseAuth: null,
   firebaseReady: false,
+  firebaseAuthResolved: false,
   activeGate: null,
   currentLessonIndex: Number(localStorage.getItem("currentLessonIndex") || 0),
   user: readJSON("signedInUser", null),
@@ -429,35 +428,42 @@ window.addEventListener("load", () => {
 });
 
 function initializeGoogleSignIn() {
-  if (!authConfig.googleClientId) {
-    els.authStatus.textContent = "Google sign-in is not configured yet.";
+  if (!state.firebaseAuth) {
+    els.authStatus.textContent = "Firebase Google sign-in is loading.";
+    window.setTimeout(initializeGoogleSignIn, 500);
     return;
   }
-
-  if (!window.google?.accounts?.id) {
-    window.setTimeout(initializeGoogleSignIn, 400);
-    return;
-  }
-
-  window.google.accounts.id.initialize({
-    client_id: authConfig.googleClientId,
-    callback: handleCredentialResponse
-  });
 
   els.googleButton.innerHTML = "";
-  window.google.accounts.id.renderButton(els.googleButton, {
-    theme: "outline",
-    size: "large",
-    type: "standard",
-    shape: "rectangular",
-    text: "sign_in_with"
-  });
+  const button = document.createElement("button");
+  button.className = "google-login-button";
+  button.type = "button";
+  button.textContent = "Continue with Google";
+  button.addEventListener("click", handleFirebaseGoogleSignIn);
+  els.googleButton.append(button);
   els.authStatus.textContent = "Sign in with an allowed Gmail account.";
 }
 
-async function handleCredentialResponse(response) {
-  const profile = decodeJwt(response.credential);
-  if (!profile?.email || profile.email_verified === false) {
+async function handleFirebaseGoogleSignIn() {
+  if (!state.firebaseAuth) {
+    showAuthError("Firebase Google sign-in is not ready yet.");
+    return;
+  }
+
+  try {
+    const provider = new window.firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    const result = await state.firebaseAuth.signInWithPopup(provider);
+    applySignedInProfile(result.user);
+  } catch (error) {
+    console.warn("Firebase Google sign-in failed", error);
+    showAuthError(getFirebaseAuthMessage(error));
+  }
+}
+
+function applySignedInProfile(profile) {
+  if (!profile?.email || profile.emailVerified === false) {
+    state.firebaseAuth?.signOut();
     showAuthError("Google did not return a verified Gmail account.");
     return;
   }
@@ -465,18 +471,19 @@ async function handleCredentialResponse(response) {
   const email = profile.email.toLowerCase();
   const role = getUserRole(email);
   if (!role) {
+    state.firebaseAuth?.signOut();
     showAuthError(`${profile.email} is not enrolled in this LMS.`);
     return;
   }
 
   state.user = {
     email: profile.email,
-    name: profile.name || profile.email,
-    picture: profile.picture || "",
+    name: profile.displayName || profile.name || profile.email,
+    picture: profile.photoURL || profile.picture || "",
     role
   };
   localStorage.setItem("signedInUser", JSON.stringify(state.user));
-  await signInFirebase(response.credential);
+  loadLessonScheduleFromCloud();
   normalizeLessonIndex();
   renderAuthState();
   render();
@@ -917,6 +924,7 @@ function saveLessons() {
 async function saveLessonSchedule() {
   localStorage.setItem("lessonSchedule", JSON.stringify(state.lessonSchedule));
   if (!state.firestore) return false;
+  if (!state.firebaseAuth?.currentUser) return false;
 
   try {
     await withTimeout(
@@ -962,6 +970,22 @@ function initializeFirebaseSync() {
       : window.firebase.initializeApp(firebaseConfig);
     state.firestore = window.firebase.firestore(app);
     state.firebaseAuth = window.firebase.auth ? window.firebase.auth(app) : null;
+    if (state.firebaseAuth) {
+      state.firebaseAuth.onAuthStateChanged((user) => {
+        state.firebaseAuthResolved = true;
+        if (user) {
+          applySignedInProfile(user);
+          return;
+        }
+
+        if (state.user?.email) {
+          state.user = null;
+          localStorage.removeItem("signedInUser");
+          renderAuthState();
+          render();
+        }
+      });
+    }
     state.firebaseReady = true;
     loadLessonScheduleFromCloud();
   } catch (error) {
@@ -992,18 +1016,17 @@ async function loadLessonScheduleFromCloud() {
   }
 }
 
-async function signInFirebase(idToken) {
-  if (!state.firebaseAuth || !idToken) return false;
-
-  try {
-    const credential = window.firebase.auth.GoogleAuthProvider.credential(idToken);
-    await state.firebaseAuth.signInWithCredential(credential);
-    await loadLessonScheduleFromCloud();
-    return true;
-  } catch (error) {
-    showToast("Firebase sign-in failed. Schedule sync may be offline.");
-    return false;
+function getFirebaseAuthMessage(error) {
+  if (error?.code === "auth/popup-closed-by-user") {
+    return "Google sign-in was closed before finishing.";
   }
+  if (error?.code === "auth/operation-not-allowed") {
+    return "Enable Google provider in Firebase Authentication.";
+  }
+  if (error?.code === "auth/unauthorized-domain") {
+    return "Add this website domain in Firebase Authentication settings.";
+  }
+  return `Firebase sign-in failed${error?.code ? `: ${error.code}` : ""}.`;
 }
 
 function getPublishedAt(lessonId) {
@@ -1289,8 +1312,8 @@ function signOut() {
   if (state.player) {
     state.player.pauseVideo();
   }
-  if (window.google?.accounts?.id) {
-    window.google.accounts.id.disableAutoSelect();
+  if (state.firebaseAuth?.currentUser) {
+    state.firebaseAuth.signOut();
   }
   renderAuthState();
   showToast("Signed out.");
@@ -1305,18 +1328,6 @@ function getStoredLessons() {
   }
 
   return readJSON("lessons", defaultLessons);
-}
-
-function decodeJwt(token) {
-  try {
-    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    const decoded = decodeURIComponent(atob(payload).split("").map((char) => {
-      return `%${(`00${char.charCodeAt(0).toString(16)}`).slice(-2)}`;
-    }).join(""));
-    return JSON.parse(decoded);
-  } catch {
-    return null;
-  }
 }
 
 function normalizeLessonIndex() {

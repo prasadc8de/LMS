@@ -29,6 +29,9 @@
   --line-on-dark: rgba(242, 246, 244, 0.16);
 
   /* Signal — measurement-tape accent pair */
+  --signal-blue: #219ebc;
+  --signal-blue-strong: #023047;
+  --signal-blue-soft: rgba(33, 158, 188, 0.14);
   --signal-green: #256a49;
   --signal-green-strong: #1d5439;
   --signal-green-soft: rgba(37, 106, 73, 0.12);
@@ -191,6 +194,20 @@ textarea:focus-visible {
 
 .google-button {
   min-height: 44px;
+}
+
+.google-login-button {
+  width: 100%;
+  min-height: 46px;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid var(--signal-blue);
+  background: var(--signal-blue);
+}
+
+.google-login-button:hover {
+  border-color: var(--signal-blue-strong);
+  background: var(--signal-blue-strong);
 }
 
 /* ==========================================================================
