@@ -25,6 +25,12 @@ const firebaseSchedulePath = {
   document: "lessonSchedule"
 };
 
+const appBuildVersion = "20260715-firebase-auth-v2";
+if (localStorage.getItem("appBuildVersion") !== appBuildVersion) {
+  localStorage.removeItem("signedInUser");
+  localStorage.setItem("appBuildVersion", appBuildVersion);
+}
+
 const classroomTopics = [
   {
     id: "python",
@@ -923,34 +929,39 @@ function saveLessons() {
 
 async function saveLessonSchedule() {
   localStorage.setItem("lessonSchedule", JSON.stringify(state.lessonSchedule));
-  if (!state.firestore) return false;
-  if (!state.firebaseAuth?.currentUser) return false;
+  if (!state.firestore) {
+    return {
+      synced: false,
+      message: "Firebase is not loaded yet."
+    };
+  }
+  if (!state.firebaseAuth?.currentUser) {
+    return {
+      synced: false,
+      message: "Sign out and sign in again with Continue with Google."
+    };
+  }
 
   try {
-    await withTimeout(
-      state.firestore
-        .collection(firebaseSchedulePath.collection)
-        .doc(firebaseSchedulePath.document)
-        .set({
-          schedule: state.lessonSchedule,
-          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }),
-      5000
-    );
-    return true;
+    await state.firestore
+      .collection(firebaseSchedulePath.collection)
+      .doc(firebaseSchedulePath.document)
+      .set({
+        schedule: state.lessonSchedule,
+        updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy: state.firebaseAuth.currentUser.email || state.user?.email || ""
+      }, { merge: true });
+    return {
+      synced: true,
+      message: "Schedule synced to Firebase."
+    };
   } catch (error) {
     console.warn("Firebase schedule sync failed", error);
-    return false;
+    return {
+      synced: false,
+      message: getFirebaseSyncMessage(error)
+    };
   }
-}
-
-function withTimeout(promise, timeoutMs) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => {
-      window.setTimeout(() => reject(new Error("Firebase sync timed out")), timeoutMs);
-    })
-  ]);
 }
 
 function hasFirebaseConfig() {
@@ -1027,6 +1038,19 @@ function getFirebaseAuthMessage(error) {
     return "Add this website domain in Firebase Authentication settings.";
   }
   return `Firebase sign-in failed${error?.code ? `: ${error.code}` : ""}.`;
+}
+
+function getFirebaseSyncMessage(error) {
+  if (error?.code === "permission-denied") {
+    return "Firebase denied the write. Check teacher email and Firestore rules.";
+  }
+  if (error?.code === "unauthenticated") {
+    return "Firebase is not signed in. Sign out and sign in again.";
+  }
+  if (error?.code === "unavailable" || error?.code === "deadline-exceeded") {
+    return "Firebase network timed out. Try again.";
+  }
+  return `Firebase sync failed${error?.code ? `: ${error.code}` : ""}.`;
 }
 
 function getPublishedAt(lessonId) {
@@ -1233,8 +1257,8 @@ async function saveScheduleFromModal() {
   els.scheduleModal.close();
   showToast(`${scheduledLessons} lesson${scheduledLessons === 1 ? "" : "s"} scheduled. Syncing...`);
 
-  const synced = await saveLessonSchedule();
-  showToast(synced ? "Schedule synced to Firebase." : "Schedule saved locally. Firebase sync needs Auth/rules check.");
+  const syncResult = await saveLessonSchedule();
+  showToast(syncResult.message);
 }
 
 async function clearScheduleFromModal() {
@@ -1246,8 +1270,8 @@ async function clearScheduleFromModal() {
   els.scheduleModal.close();
   showToast("Lesson hidden. Syncing...");
 
-  const synced = await saveLessonSchedule();
-  showToast(synced ? "Schedule synced to Firebase." : "Schedule saved locally. Firebase sync needs Auth/rules check.");
+  const syncResult = await saveLessonSchedule();
+  showToast(syncResult.message);
 }
 
 function getLessonSequence(lessonId, followUpCount) {
