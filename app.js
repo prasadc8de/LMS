@@ -273,17 +273,18 @@ function tickPlayback() {
   saveLessonState();
 
   const skippedGate = lesson.checkpoints.find((gate) => {
-    return gate.time < currentTime && !progress.completed.includes(gate.id);
+    const gateTime = getGateTime(gate);
+    return gateTime < currentTime && !progress.completed.includes(gate.id);
   });
 
   if (skippedGate) {
-    state.player.seekTo(Math.max(skippedGate.time - 1, 0), true);
+    state.player.seekTo(Math.max(getGateTime(skippedGate) - 1, 0), true);
     openGate(skippedGate);
     return;
   }
 
   const reachedGate = lesson.checkpoints.find((gate) => {
-    return currentTime >= gate.time && !progress.completed.includes(gate.id);
+    return currentTime >= getGateTime(gate) && !progress.completed.includes(gate.id);
   });
 
   if (reachedGate) {
@@ -502,14 +503,15 @@ function getScheduleStateLabel(lesson) {
 function renderCheckpoints() {
   const lesson = getCurrentLesson();
   const progress = getCurrentProgress();
-  els.intervalLabel.textContent = "Custom timestamps";
+  els.intervalLabel.textContent = "Spread across video";
   els.checkpointList.innerHTML = lesson.checkpoints.map((gate) => {
     const completed = progress.completed.includes(gate.id);
     const active = state.activeGate === gate.id;
     const status = completed ? "Done" : active ? "Paused" : gate.type === "quiz" ? "Quiz" : "Assignment";
+    const gateTime = getGateTime(gate);
     return `
       <article class="checkpoint ${completed ? "completed" : ""} ${active ? "active" : ""}">
-        <div class="checkpoint-icon">${completed ? "OK" : formatMinutes(gate.time)}</div>
+        <div class="checkpoint-icon">${completed ? "OK" : formatMinutes(gateTime)}</div>
         <div>
           <strong>${escapeHTML(gate.title)}</strong>
           <small>${gate.type === "quiz" ? "Answer required to resume" : "Assignment submission required"}</small>
@@ -538,7 +540,7 @@ function renderStats() {
   els.scoreLabel.textContent = `${score}%`;
   els.attemptsLabel.textContent = String(progress.attempts);
   els.submissionsLabel.textContent = String(progress.submissions);
-  els.nextGateLabel.textContent = nextGate ? `${nextGate.type === "quiz" ? "Quiz" : "Assignment"} at ${formatTime(nextGate.time)}` : "All gates done";
+  els.nextGateLabel.textContent = nextGate ? `${nextGate.type === "quiz" ? "Quiz" : "Assignment"} at ${formatTime(getGateTime(nextGate))}` : "All gates done";
   els.assignmentStatusLabel.textContent = "Ready";
 }
 
@@ -811,6 +813,28 @@ function formatSchedule(timestamp) {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(timestamp));
+}
+
+function getGateTime(gate) {
+  const fallbackTime = Number(gate.time);
+  const fallback = Number.isFinite(fallbackTime) ? fallbackTime : 60;
+  const percent = Number(gate.timePercent);
+  const duration = getVideoDuration();
+
+  if (!Number.isFinite(percent) || !Number.isFinite(duration) || duration <= 0) {
+    return fallback;
+  }
+
+  const minimum = Math.min(30, Math.max(5, Math.floor(duration * 0.08)));
+  const maximum = Math.max(minimum + 1, Math.floor(duration * 0.92));
+  const calculated = Math.floor(duration * (percent / 100));
+  return Math.min(Math.max(calculated, minimum), maximum);
+}
+
+function getVideoDuration() {
+  if (!state.player || typeof state.player.getDuration !== "function") return 0;
+  const duration = Number(state.player.getDuration());
+  return Number.isFinite(duration) ? duration : 0;
 }
 
 function isTeacher() {
