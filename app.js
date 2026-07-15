@@ -11,6 +11,18 @@ const siteAuthConfig = {
   }
 };
 
+const firebaseConfig = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  appId: ""
+};
+
+const firebaseSchedulePath = {
+  collection: "lms",
+  document: "lessonSchedule"
+};
+
 const classroomTopics = [
   {
     id: "python",
@@ -327,7 +339,9 @@ const shouldResetLessonState = localStorage.getItem("lessonCatalogVersion") !== 
 const state = {
   player: null,
   poller: null,
-  scheduleVisibilityTimer: null,
+  firestore: null,
+  firebaseAuth: null,
+  firebaseReady: false,
   activeGate: null,
   currentLessonIndex: Number(localStorage.getItem("currentLessonIndex") || 0),
   user: readJSON("signedInUser", null),
@@ -378,7 +392,7 @@ const els = {
 normalizeLessonIndex();
 renderAuthState();
 render();
-startScheduleVisibilityRefresh();
+initializeFirebaseSync();
 
 const youtubeApiTimer = window.setTimeout(() => {
   if (!state.player && getCurrentLesson()) {
@@ -438,7 +452,7 @@ function initializeGoogleSignIn() {
   els.authStatus.textContent = "Sign in with an allowed Gmail account.";
 }
 
-function handleCredentialResponse(response) {
+async function handleCredentialResponse(response) {
   const profile = decodeJwt(response.credential);
   if (!profile?.email || profile.email_verified === false) {
     showAuthError("Google did not return a verified Gmail account.");
@@ -459,6 +473,7 @@ function handleCredentialResponse(response) {
     role
   };
   localStorage.setItem("signedInUser", JSON.stringify(state.user));
+  await signInFirebase(response.credential);
   normalizeLessonIndex();
   renderAuthState();
   render();
@@ -529,17 +544,6 @@ function stopPolling() {
     window.clearInterval(state.poller);
     state.poller = null;
   }
-}
-
-function startScheduleVisibilityRefresh() {
-  if (state.scheduleVisibilityTimer) {
-    window.clearInterval(state.scheduleVisibilityTimer);
-  }
-
-  state.scheduleVisibilityTimer = window.setInterval(() => {
-    normalizeLessonIndex();
-    render();
-  }, 30000);
 }
 
 function tickPlayback() {
@@ -907,8 +911,83 @@ function saveLessons() {
   localStorage.setItem("lessonCatalogVersion", lessonCatalogVersion);
 }
 
-function saveLessonSchedule() {
+async function saveLessonSchedule() {
   localStorage.setItem("lessonSchedule", JSON.stringify(state.lessonSchedule));
+  if (!state.firestore) return false;
+
+  try {
+    await state.firestore
+      .collection(firebaseSchedulePath.collection)
+      .doc(firebaseSchedulePath.document)
+      .set({
+        schedule: state.lessonSchedule,
+        updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function hasFirebaseConfig() {
+  return Boolean(firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId && firebaseConfig.appId);
+}
+
+function initializeFirebaseSync() {
+  if (!hasFirebaseConfig()) return;
+  if (!window.firebase?.initializeApp) {
+    showToast("Firebase SDK did not load. Schedule sync is offline.");
+    return;
+  }
+
+  try {
+    const app = window.firebase.apps.length
+      ? window.firebase.app()
+      : window.firebase.initializeApp(firebaseConfig);
+    state.firestore = window.firebase.firestore(app);
+    state.firebaseAuth = window.firebase.auth ? window.firebase.auth(app) : null;
+    state.firebaseReady = true;
+    loadLessonScheduleFromCloud();
+  } catch (error) {
+    state.firestore = null;
+    state.firebaseReady = false;
+    showToast("Firebase sync is not configured correctly.");
+  }
+}
+
+async function loadLessonScheduleFromCloud() {
+  if (!state.firestore) return false;
+
+  try {
+    const snapshot = await state.firestore
+      .collection(firebaseSchedulePath.collection)
+      .doc(firebaseSchedulePath.document)
+      .get();
+    const data = snapshot.exists ? snapshot.data() : null;
+    if (data?.schedule && typeof data.schedule === "object") {
+      state.lessonSchedule = data.schedule;
+      localStorage.setItem("lessonSchedule", JSON.stringify(state.lessonSchedule));
+      normalizeLessonIndex();
+      render();
+    }
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function signInFirebase(idToken) {
+  if (!state.firebaseAuth || !idToken) return false;
+
+  try {
+    const credential = window.firebase.auth.GoogleAuthProvider.credential(idToken);
+    await state.firebaseAuth.signInWithCredential(credential);
+    await loadLessonScheduleFromCloud();
+    return true;
+  } catch (error) {
+    showToast("Firebase sign-in failed. Schedule sync may be offline.");
+    return false;
+  }
 }
 
 function getPublishedAt(lessonId) {
@@ -1092,7 +1171,7 @@ function fillScheduleInputs(lessonId) {
   renderSchedulePreview();
 }
 
-function saveScheduleFromModal() {
+async function saveScheduleFromModal() {
   const lessonId = els.scheduleLessonSelect.value;
   if (!lessonId || !els.scheduleDateInput.value || !els.scheduleTimeInput.value) {
     showToast("Choose a lesson, date, and time.");
@@ -1106,24 +1185,24 @@ function saveScheduleFromModal() {
   }
 
   const scheduledLessons = scheduleLessonSequence(lessonId, timestamp, 3);
-  saveLessonSchedule();
+  const synced = await saveLessonSchedule();
   renderScheduleOptions();
   els.scheduleLessonSelect.value = lessonId;
   fillScheduleInputs(lessonId);
   normalizeLessonIndex();
   render();
   els.scheduleModal.close();
-  showToast(`${scheduledLessons} lesson${scheduledLessons === 1 ? "" : "s"} scheduled.`);
+  showToast(`${scheduledLessons} lesson${scheduledLessons === 1 ? "" : "s"} scheduled${synced ? " and synced" : " locally"}.`);
 }
 
-function clearScheduleFromModal() {
+async function clearScheduleFromModal() {
   const lessonId = els.scheduleLessonSelect.value;
   delete state.lessonSchedule[lessonId];
-  saveLessonSchedule();
+  const synced = await saveLessonSchedule();
   normalizeLessonIndex();
   render();
   els.scheduleModal.close();
-  showToast("Lesson hidden from students.");
+  showToast(`Lesson hidden${synced ? " and synced" : " locally"}.`);
 }
 
 function getLessonSequence(lessonId, followUpCount) {
