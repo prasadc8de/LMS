@@ -37,6 +37,7 @@ const state = {
   firebaseAuth: null,
   firebaseReady: false,
   firebaseAuthResolved: false,
+  youtubeReady: false,
   catalogLoaded: false,
   activeGate: null,
   currentLessonIndex: Number(localStorage.getItem("currentLessonIndex") || 0),
@@ -98,6 +99,13 @@ const youtubeApiTimer = window.setTimeout(() => {
 }, 9000);
 
 window.onYouTubeIframeAPIReady = () => {
+  state.youtubeReady = true;
+  ensureYouTubePlayer();
+};
+
+function ensureYouTubePlayer() {
+  if (!state.youtubeReady || state.player) return;
+
   const lesson = getCurrentLesson();
   if (!lesson) {
     renderEmptyLessonState();
@@ -116,7 +124,7 @@ window.onYouTubeIframeAPIReady = () => {
       onStateChange: onPlayerStateChange
     }
   });
-};
+}
 
 window.addEventListener("load", () => {
   initializeGoogleSignIn();
@@ -384,6 +392,7 @@ function render() {
     renderEmptyLessonState();
     return;
   }
+  ensureYouTubePlayer();
   renderCheckpoints();
   renderStats();
   renderLessonNotes();
@@ -580,6 +589,8 @@ function switchLesson(index) {
     if (progress.lastTime > 0) {
       state.player.seekTo(progress.lastTime, true);
     }
+  } else {
+    ensureYouTubePlayer();
   }
   render();
 }
@@ -707,6 +718,7 @@ async function loadLessonScheduleFromCloud() {
     if (data?.schedule && typeof data.schedule === "object") {
       state.lessonSchedule = data.schedule;
       normalizeLessonIndex();
+      ensureYouTubePlayer();
       render();
     }
     return true;
@@ -747,6 +759,8 @@ async function loadCourseCatalogFromCloud() {
     state.topics = data.topics;
     state.lessons = data.lessons;
     state.catalogLoaded = true;
+    normalizeLessonIndex();
+    ensureYouTubePlayer();
     return true;
   } catch (error) {
     console.warn("Course catalog load failed", error);
