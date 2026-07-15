@@ -327,6 +327,7 @@ const shouldResetLessonState = localStorage.getItem("lessonCatalogVersion") !== 
 const state = {
   player: null,
   poller: null,
+  scheduleVisibilityTimer: null,
   activeGate: null,
   currentLessonIndex: Number(localStorage.getItem("currentLessonIndex") || 0),
   user: readJSON("signedInUser", null),
@@ -377,6 +378,7 @@ const els = {
 normalizeLessonIndex();
 renderAuthState();
 render();
+startScheduleVisibilityRefresh();
 
 const youtubeApiTimer = window.setTimeout(() => {
   if (!state.player && getCurrentLesson()) {
@@ -527,6 +529,17 @@ function stopPolling() {
     window.clearInterval(state.poller);
     state.poller = null;
   }
+}
+
+function startScheduleVisibilityRefresh() {
+  if (state.scheduleVisibilityTimer) {
+    window.clearInterval(state.scheduleVisibilityTimer);
+  }
+
+  state.scheduleVisibilityTimer = window.setInterval(() => {
+    normalizeLessonIndex();
+    render();
+  }, 30000);
 }
 
 function tickPlayback() {
@@ -737,7 +750,12 @@ function getVisibleLessonEntries() {
 
 function canAccessLesson(lesson) {
   if (isTeacher()) return true;
-  return getPublishedAt(lesson.id) <= Date.now();
+  return isLessonPublished(lesson.id);
+}
+
+function isLessonPublished(lessonId) {
+  const publishedAt = getPublishedAt(lessonId);
+  return Number.isFinite(publishedAt) && publishedAt <= Date.now();
 }
 
 function getLessonMeta(lesson) {
@@ -895,7 +913,12 @@ function saveLessonSchedule() {
 
 function getPublishedAt(lessonId) {
   const value = state.lessonSchedule[lessonId];
-  return value ? Number(value) : Number.POSITIVE_INFINITY;
+  if (value === undefined || value === null || value === "") {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const timestamp = Number(value);
+  return Number.isFinite(timestamp) ? timestamp : Number.POSITIVE_INFINITY;
 }
 
 function formatSchedule(timestamp) {
