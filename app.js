@@ -21,7 +21,10 @@ const firebasePaths = {
   progress: "progress"
 };
 
-const appBuildVersion = "20260719-gamification-v1";
+const appBuildVersion = "20260719-brand-v1";
+const programName = "Prasad Boyane Data Engg";
+const coachWhatsAppNumber = "";
+const whatsappBaseUrl = coachWhatsAppNumber ? `https://wa.me/${coachWhatsAppNumber}` : "https://wa.me/";
 if (localStorage.getItem("appBuildVersion") !== appBuildVersion) {
   localStorage.removeItem("signedInUser");
   localStorage.removeItem("courseTopics");
@@ -85,6 +88,11 @@ const els = {
   notesBadge: document.querySelector("#notesBadge"),
   notesList: document.querySelector("#notesList"),
   openAssignmentBtn: document.querySelector("#openAssignmentBtn"),
+  studentHeaderActions: document.querySelector("#studentHeaderActions"),
+  aboutProgramBtn: document.querySelector("#aboutProgramBtn"),
+  aboutProgramModal: document.querySelector("#aboutProgramModal"),
+  shareProgressBtn: document.querySelector("#shareProgressBtn"),
+  coachChatBtn: document.querySelector("#coachChatBtn"),
   scheduleLessonBtn: document.querySelector("#scheduleLessonBtn"),
   scheduleModal: document.querySelector("#scheduleModal"),
   scheduleLessonSelect: document.querySelector("#scheduleLessonSelect"),
@@ -211,18 +219,21 @@ function renderAuthState() {
       clearPrivateSessionData();
       els.authGate.classList.remove("hidden");
       els.studentEmail.textContent = "Not signed in";
+      els.studentHeaderActions.classList.add("hidden");
       els.scheduleLessonBtn.classList.add("hidden");
       return;
     }
 
     els.authGate.classList.add("hidden");
     els.studentEmail.textContent = `${state.user.email} (${getRoleLabel()})`;
+    els.studentHeaderActions.classList.toggle("hidden", !isStudent());
     els.scheduleLessonBtn.classList.toggle("hidden", !isTeacher());
     return;
   }
 
   els.authGate.classList.remove("hidden");
   els.studentEmail.textContent = "Not signed in";
+  els.studentHeaderActions.classList.add("hidden");
   els.scheduleLessonBtn.classList.add("hidden");
 }
 
@@ -1152,12 +1163,52 @@ function isTeacher() {
   return state.user?.role === "teacher";
 }
 
+function isStudent() {
+  return state.user?.role === "student";
+}
+
 function getRoleLabel() {
   return isTeacher() ? "Teacher" : "Student";
 }
 
 function openAssignment() {
-  window.open(getLessonAssignmentUrl(getCurrentLesson()), "_blank", "noopener,noreferrer");
+  const lesson = getCurrentLesson();
+  if (!lesson) {
+    showToast("No assignment is posted yet.");
+    return;
+  }
+  window.open(getLessonAssignmentUrl(lesson), "_blank", "noopener,noreferrer");
+}
+
+function openAboutProgram() {
+  els.aboutProgramModal.showModal();
+}
+
+function shareProgressOnWhatsApp() {
+  const lesson = getCurrentLesson();
+  const summary = getGamificationSummary();
+  const message = [
+    `Hi Prasad, sharing my ${programName} progress:`,
+    `Level ${summary.level} with ${summary.xp} XP`,
+    `${summary.streakDays}-day streak`,
+    `${summary.completedLessons}/${summary.totalLessons} lessons completed`,
+    `${summary.badges.length} badges earned`,
+    lesson ? `Current lesson: ${lesson.title}` : "Current lesson: Not posted yet"
+  ].join("\n");
+
+  openWhatsAppMessage(message);
+}
+
+function openCoachChat() {
+  const lesson = getCurrentLesson();
+  const message = lesson
+    ? `Hi Prasad, I have a doubt in ${programName} - ${lesson.title}.`
+    : `Hi Prasad, I have a doubt in ${programName}.`;
+  openWhatsAppMessage(message);
+}
+
+function openWhatsAppMessage(message) {
+  window.open(`${whatsappBaseUrl}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
 }
 
 function openScheduleModal() {
@@ -1365,6 +1416,9 @@ function formatMinutes(seconds) {
 
 document.querySelector("#openAssignmentBtn").addEventListener("click", openAssignment);
 document.querySelector("#switchAccountBtn").addEventListener("click", signOut);
+document.querySelector("#aboutProgramBtn").addEventListener("click", openAboutProgram);
+document.querySelector("#shareProgressBtn").addEventListener("click", shareProgressOnWhatsApp);
+document.querySelector("#coachChatBtn").addEventListener("click", openCoachChat);
 document.querySelector("#scheduleLessonBtn").addEventListener("click", openScheduleModal);
 document.querySelector("#scheduleLessonSelect").addEventListener("change", (event) => fillScheduleInputs(event.target.value));
 document.querySelector("#scheduleDateInput").addEventListener("input", renderSchedulePreview);

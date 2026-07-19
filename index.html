@@ -3,18 +3,27 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ClassGate LMS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="styles.css?v=20260719-gamification-v1">
+    <title>Prasad Boyane Data Engg</title>
+    <link rel="icon" type="image/png" href="assets/prasad-boyane-sticker.png">
+    <link rel="stylesheet" href="styles.css?v=20260719-brand-v1">
   </head>
   <body>
     <section class="auth-gate" id="authGate" aria-label="Google sign in">
       <div class="auth-panel">
-        <div class="brand auth-brand">
-          <div class="brand-mark">CG</div>
+        <div class="auth-identity">
+          <div class="coach-sticker-wrap auth-sticker">
+            <img src="assets/prasad-boyane-sticker.png" alt="Prasad Boyane coaching program sticker">
+          </div>
           <div>
-            <p>ClassGate</p>
+            <p class="eyebrow">Private coaching LMS</p>
+            <h1>Prasad Boyane Data Engg</h1>
+            <p>Structured data engineering lessons, checkpoints, assignments, and progress tracking for enrolled students.</p>
+          </div>
+        </div>
+        <div class="brand auth-brand">
+          <div class="brand-mark">PB</div>
+          <div>
+            <p>Prasad Boyane Data Engg</p>
             <span>Secure Video LMS</span>
           </div>
         </div>
@@ -25,20 +34,28 @@
         </div>
         <div id="googleButton" class="google-button"></div>
         <p class="auth-status" id="authStatus">Sign in with an allowed Gmail account.</p>
+        <p class="copyright-line">&copy; 2026 Prasad Boyane Data Engg. Course videos, notes, quizzes, and assignments are for enrolled learners only.</p>
       </div>
     </section>
 
     <div class="app-shell">
       <aside class="sidebar" aria-label="Course navigation">
         <div class="brand">
-          <div class="brand-mark">CG</div>
+          <div class="brand-mark">PB</div>
           <div>
-            <p>ClassGate</p>
+            <p>Prasad Boyane Data Engg</p>
             <span>Video LMS</span>
           </div>
         </div>
 
         <section class="profile-card">
+          <div class="mini-coach">
+            <img src="assets/prasad-boyane-sticker.png" alt="Prasad Boyane">
+            <div>
+              <strong>Coach Prasad</strong>
+              <span>Data Engineering Program</span>
+            </div>
+          </div>
           <span class="label">Signed in</span>
           <strong id="studentEmail">student@school.edu</strong>
           <button class="ghost-button" id="switchAccountBtn" type="button">Sign out</button>
@@ -52,10 +69,20 @@
       <main class="workspace">
         <header class="topbar">
           <div>
-            <p class="eyebrow">Physics 101</p>
-            <h1>Intro to Motion</h1>
+            <p class="eyebrow">Data Engineering Program</p>
+            <h1>Lesson workspace</h1>
           </div>
           <div class="topbar-actions">
+            <div class="student-actions hidden" id="studentHeaderActions" aria-label="Student quick actions">
+              <button class="ghost-button compact-button" id="aboutProgramBtn" type="button">About</button>
+              <a class="ghost-button compact-button" id="askDoubtLink" href="https://docs.google.com/spreadsheets/d/18wGRnw_pG1zZoN6pCYugtJIYZL9KawIUkOkocINaneg/edit?usp=sharing" target="_blank" rel="noopener noreferrer">Ask doubt</a>
+              <button class="secondary-button compact-button" id="shareProgressBtn" type="button">Share progress</button>
+              <button class="ghost-button compact-button" id="coachChatBtn" type="button">Chat with Prasad</button>
+            </div>
+            <div class="header-coach" aria-label="Program coach">
+              <img src="assets/prasad-boyane-sticker.png" alt="Prasad Boyane">
+              <span>Prasad Boyane<br>Data Engg</span>
+            </div>
             <button class="secondary-button hidden" id="scheduleLessonBtn" type="button">Schedule Lesson</button>
           </div>
         </header>
@@ -69,7 +96,7 @@
                   <div>
                     <span class="play-symbol">Play</span>
                     <strong>YouTube player loading</strong>
-                    <p>Use a public/unlisted demo video ID while testing. Private videos require the signed-in Gmail to have YouTube access.</p>
+                    <p>Private coaching videos load after Google sign-in and lesson access checks.</p>
                   </div>
                 </div>
               </div>
@@ -148,6 +175,10 @@
             </section>
           </aside>
         </section>
+        <footer class="site-footer">
+          <span>&copy; 2026 Prasad Boyane Data Engg. All rights reserved.</span>
+          <span>Private coaching material for enrolled students only.</span>
+        </footer>
       </main>
     </div>
 
@@ -206,12 +237,29 @@
       </form>
     </dialog>
 
+    <dialog id="aboutProgramModal" class="modal">
+      <form method="dialog" class="modal-body">
+        <div class="modal-header about-modal-header">
+          <img src="assets/prasad-boyane-sticker.png" alt="Prasad Boyane">
+          <div>
+            <p class="eyebrow">About the program</p>
+            <h2>Prasad Boyane Data Engg</h2>
+          </div>
+        </div>
+        <p class="access-denied-copy">A private data engineering coaching portal for enrolled learners, with scheduled video lessons, in-video checkpoints, assignments, progress tracking, badges, streaks, and leaderboard visibility.</p>
+        <p class="copyright-line">&copy; 2026 Prasad Boyane Data Engg. All course videos, notes, quizzes, assignments, and student progress data are part of the coaching program and may not be redistributed.</p>
+        <div class="modal-actions">
+          <button class="secondary-button" type="submit">Close</button>
+        </div>
+      </form>
+    </dialog>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script src="app.js?v=20260719-gamification-v1"></script>
+    <script src="app.js?v=20260719-brand-v1"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
   </body>
 </html>
