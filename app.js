@@ -17,10 +17,11 @@ const firebasePaths = {
     collection: "lms",
     document: "lessonSchedule"
   },
-  users: "users"
+  users: "users",
+  progress: "progress"
 };
 
-const appBuildVersion = "20260719-access-denied-v1";
+const appBuildVersion = "20260719-gamification-v1";
 if (localStorage.getItem("appBuildVersion") !== appBuildVersion) {
   localStorage.removeItem("signedInUser");
   localStorage.removeItem("courseTopics");
@@ -46,7 +47,11 @@ const state = {
   topics: [],
   lessons: [],
   openPlaylists: readJSON("openPlaylists", { python: true }),
-  lessonSchedule: {}
+  lessonSchedule: {},
+  activityDates: [],
+  leaderboard: [],
+  progressSaveTimer: null,
+  progressSaving: false
 };
 
 const els = {
@@ -64,6 +69,9 @@ const els = {
   scoreLabel: document.querySelector("#scoreLabel"),
   attemptsLabel: document.querySelector("#attemptsLabel"),
   submissionsLabel: document.querySelector("#submissionsLabel"),
+  gamificationStack: document.querySelector("#gamificationStack"),
+  leaderboardStatus: document.querySelector("#leaderboardStatus"),
+  leaderboardList: document.querySelector("#leaderboardList"),
   nextGateLabel: document.querySelector("#nextGateLabel"),
   assignmentStatusLabel: document.querySelector("#assignmentStatusLabel"),
   gateModal: document.querySelector("#gateModal"),
@@ -187,7 +195,9 @@ async function applySignedInProfile(profile) {
     role: userRecord.role
   };
   await loadCourseCatalogFromCloud();
+  await loadLearnerProgressFromCloud();
   await loadLessonScheduleFromCloud();
+  await loadLeaderboardFromCloud();
   normalizeLessonIndex();
   renderAuthState();
   render();
@@ -349,6 +359,7 @@ function renderQuizGate(gate) {
 
     const progress = getCurrentProgress();
     progress.attempts += 1;
+    registerLearningActivity();
 
     if (selected.value !== gate.answer) {
       saveLessonState();
@@ -359,6 +370,7 @@ function renderQuizGate(gate) {
 
     progress.correct += 1;
     completeGate(gate);
+    saveLearnerProgressToCloud();
     showToast("Correct. Resuming the video.");
   });
 }
@@ -380,7 +392,9 @@ function renderAssignmentGate(gate) {
   document.querySelector("#checkSubmissionBtn").addEventListener("click", () => {
     const progress = getCurrentProgress();
     progress.submissions += 1;
+    registerLearningActivity();
     completeGate(gate);
+    saveLearnerProgressToCloud();
     showToast("Assignment marked submitted. Resuming the video.");
   });
 }
@@ -408,6 +422,8 @@ function render() {
   ensureYouTubePlayer();
   renderCheckpoints();
   renderStats();
+  renderGamification();
+  renderLeaderboard();
   renderLessonNotes();
 }
 
@@ -539,7 +555,7 @@ function renderStats() {
   const progress = getCurrentProgress();
   const total = lesson.checkpoints.length;
   const completeCount = progress.completed.length;
-  const percent = Math.round((completeCount / total) * 100);
+  const percent = total ? Math.round((completeCount / total) * 100) : 0;
   const score = progress.attempts ? Math.round((progress.correct / progress.attempts) * 100) : 0;
   const nextGate = lesson.checkpoints.find((gate) => !progress.completed.includes(gate.id));
 
@@ -554,6 +570,68 @@ function renderStats() {
   els.submissionsLabel.textContent = String(progress.submissions);
   els.nextGateLabel.textContent = nextGate ? `${nextGate.type === "quiz" ? "Quiz" : "Assignment"} at ${formatTime(getGateTime(nextGate))}` : "All gates done";
   els.assignmentStatusLabel.textContent = "Ready";
+}
+
+function renderGamification() {
+  const summary = getGamificationSummary();
+  els.gamificationStack.innerHTML = `
+    <div class="xp-card">
+      <div>
+        <span class="label">XP</span>
+        <strong>${summary.xp.toLocaleString()}</strong>
+      </div>
+      <div>
+        <span class="label">Level</span>
+        <strong>${summary.level}</strong>
+      </div>
+      <div>
+        <span class="label">Streak</span>
+        <strong>${summary.streakDays}d</strong>
+      </div>
+    </div>
+    <div class="level-meter" aria-label="Level progress">
+      <span style="width: ${summary.levelProgress}%"></span>
+    </div>
+    <details class="status-details">
+      <summary>⭐ XP + Levels</summary>
+      <p>${summary.xpToNext} XP to Level ${summary.level + 1}. XP includes checkpoints, quiz accuracy, completed lessons, streaks, and badges.</p>
+    </details>
+    <details class="status-details">
+      <summary>🔥 Streak</summary>
+      <p>${summary.streakDays > 0 ? `Active for ${summary.streakDays} learning day${summary.streakDays === 1 ? "" : "s"}.` : "Answer a checkpoint to start a streak."}</p>
+    </details>
+    <details class="status-details" open>
+      <summary>🏅 Badges</summary>
+      <div class="badge-list">
+        ${summary.badges.length ? summary.badges.map((badge) => `<span>${escapeHTML(badge)}</span>`).join("") : "<span>Start learning</span>"}
+      </div>
+    </details>
+  `;
+}
+
+function renderLeaderboard() {
+  if (!state.user?.email) {
+    els.leaderboardList.innerHTML = "";
+    return;
+  }
+
+  const entries = getLeaderboardEntries();
+  els.leaderboardStatus.textContent = entries.length ? `${entries.length} learners` : "No rank";
+  els.leaderboardList.innerHTML = entries.length ? entries.map((entry, index) => `
+    <article class="leaderboard-row ${entry.email === state.user.email ? "current" : ""}">
+      <div class="rank">${index + 1}</div>
+      <div class="leader-main">
+        <strong>${escapeHTML(entry.name || entry.email)}</strong>
+        <small>Lvl ${entry.summary.level} · ${entry.summary.xp.toLocaleString()} XP · 🔥 ${entry.summary.streakDays}d · 🏅 ${entry.summary.badges.length}</small>
+        <div class="progress-map" aria-label="Progress map">
+          <span style="width: ${entry.summary.completionPercent}%"></span>
+        </div>
+      </div>
+      <div class="leader-score">${entry.rankScore}</div>
+    </article>
+  `).join("") : `
+    <div class="empty-leaderboard">Complete a checkpoint to enter the board.</div>
+  `;
 }
 
 function renderLessonNotes() {
@@ -581,6 +659,9 @@ function renderEmptyLessonState() {
   els.scoreLabel.textContent = "0%";
   els.attemptsLabel.textContent = "0";
   els.submissionsLabel.textContent = "0";
+  els.gamificationStack.innerHTML = "";
+  els.leaderboardStatus.textContent = "Waiting";
+  els.leaderboardList.innerHTML = "";
   els.nextGateLabel.textContent = "No posted lesson";
   els.assignmentStatusLabel.textContent = "Hidden";
   els.notesBadge.textContent = "Not posted";
@@ -641,6 +722,50 @@ function createEmptyProgress() {
 
 function saveLessonState() {
   localStorage.setItem("lessonState", JSON.stringify(state.lessonState));
+  scheduleProgressSave();
+}
+
+function registerLearningActivity() {
+  const today = getDateKey(new Date());
+  if (!state.activityDates.includes(today)) {
+    state.activityDates.push(today);
+    state.activityDates = state.activityDates.slice(-90);
+  }
+}
+
+function scheduleProgressSave() {
+  if (!state.firestore || !state.firebaseAuth?.currentUser || !state.user?.email) return;
+  window.clearTimeout(state.progressSaveTimer);
+  state.progressSaveTimer = window.setTimeout(saveLearnerProgressToCloud, 1800);
+}
+
+async function saveLearnerProgressToCloud() {
+  if (!state.firestore || !state.firebaseAuth?.currentUser || !state.user?.email || state.progressSaving) return false;
+
+  state.progressSaving = true;
+  try {
+    const summary = getGamificationSummary();
+    await state.firestore
+      .collection(firebasePaths.progress)
+      .doc(state.user.email.toLowerCase())
+      .set({
+        email: state.user.email.toLowerCase(),
+        name: state.user.name || state.user.email,
+        role: state.user.role,
+        lessonState: state.lessonState,
+        activityDates: state.activityDates,
+        summary,
+        updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    await loadLeaderboardFromCloud();
+    renderLeaderboard();
+    return true;
+  } catch (error) {
+    console.warn("Learner progress sync failed", error);
+    return false;
+  } finally {
+    state.progressSaving = false;
+  }
 }
 
 async function saveLessonSchedule() {
@@ -741,6 +866,48 @@ async function loadLessonScheduleFromCloud() {
   }
 }
 
+async function loadLearnerProgressFromCloud() {
+  if (!state.firestore || !state.user?.email) return false;
+
+  try {
+    const snapshot = await state.firestore
+      .collection(firebasePaths.progress)
+      .doc(state.user.email.toLowerCase())
+      .get();
+    const data = snapshot.exists ? snapshot.data() : null;
+    if (data?.lessonState && typeof data.lessonState === "object") {
+      state.lessonState = normalizeLessonState(data.lessonState);
+      localStorage.setItem("lessonState", JSON.stringify(state.lessonState));
+    } else {
+      state.lessonState = {};
+      localStorage.removeItem("lessonState");
+    }
+    state.activityDates = Array.isArray(data?.activityDates)
+      ? [...new Set(data.activityDates)].filter(Boolean).slice(-90)
+      : [];
+    return true;
+  } catch (error) {
+    console.warn("Learner progress load failed", error);
+    return false;
+  }
+}
+
+async function loadLeaderboardFromCloud() {
+  if (!state.firestore || !state.user?.email) return false;
+
+  try {
+    const snapshot = await state.firestore.collection(firebasePaths.progress).get();
+    state.leaderboard = snapshot.docs
+      .map((doc) => ({ email: doc.id, ...doc.data() }))
+      .filter((entry) => entry.role === "student" || entry.email === state.user.email.toLowerCase());
+    return true;
+  } catch (error) {
+    console.warn("Leaderboard load failed", error);
+    state.leaderboard = [];
+    return false;
+  }
+}
+
 async function loadUserRecord(email) {
   if (!state.firestore || !email) return null;
 
@@ -807,6 +974,138 @@ function getFirebaseSyncMessage(error) {
     return "Firebase network timed out. Try again.";
   }
   return `Firebase sync failed${error?.code ? `: ${error.code}` : ""}.`;
+}
+
+function getGamificationSummary(lessonState = state.lessonState, activityDates = state.activityDates) {
+  const totals = getProgressTotals(lessonState);
+  const accuracy = totals.attempts ? Math.round((totals.correct / totals.attempts) * 100) : 0;
+  const badges = getBadges(totals, activityDates, accuracy);
+  const streakDays = getCurrentStreak(activityDates);
+  const xp = (totals.completedGates * 10)
+    + (totals.correct * 15)
+    + (totals.submissions * 20)
+    + (totals.completedLessons * 50)
+    + (Math.min(streakDays, 10) * 25)
+    + (badges.length * 75);
+  const level = Math.floor(xp / 500) + 1;
+  const levelBase = (level - 1) * 500;
+  const levelProgress = Math.min(100, Math.round(((xp - levelBase) / 500) * 100));
+  const xpToNext = Math.max(0, (level * 500) - xp);
+  const completionPercent = state.lessons.length ? Math.round((totals.completedLessons / state.lessons.length) * 100) : 0;
+  const rankScore = xp + (streakDays * 30) + (badges.length * 120) + (accuracy * 2) + (completionPercent * 5);
+
+  return {
+    xp,
+    level,
+    levelProgress,
+    xpToNext,
+    streakDays,
+    badges,
+    accuracy,
+    completedLessons: totals.completedLessons,
+    totalLessons: state.lessons.length,
+    completedGates: totals.completedGates,
+    attempts: totals.attempts,
+    correct: totals.correct,
+    submissions: totals.submissions,
+    completionPercent,
+    rankScore
+  };
+}
+
+function getProgressTotals(lessonState) {
+  return state.lessons.reduce((totals, lesson) => {
+    const progress = lessonState[lesson.id] || createEmptyProgress();
+    const completed = Array.isArray(progress.completed) ? progress.completed.length : 0;
+    const lessonDone = lesson.checkpoints?.length > 0 && completed >= lesson.checkpoints.length;
+    totals.completedGates += completed;
+    totals.completedLessons += lessonDone ? 1 : 0;
+    totals.attempts += Number(progress.attempts) || 0;
+    totals.correct += Number(progress.correct) || 0;
+    totals.submissions += Number(progress.submissions) || 0;
+    return totals;
+  }, {
+    completedGates: 0,
+    completedLessons: 0,
+    attempts: 0,
+    correct: 0,
+    submissions: 0
+  });
+}
+
+function getBadges(totals, activityDates, accuracy) {
+  const badges = [];
+  if (totals.completedGates > 0) badges.push("🚀 First Gate");
+  if (totals.completedLessons > 0) badges.push("🏁 Lesson Finisher");
+  if (totals.completedLessons >= 5) badges.push("🧭 Path Builder");
+  if (totals.attempts >= 10 && accuracy >= 80) badges.push("🎯 Quiz Master");
+  if (getCurrentStreak(activityDates) >= 3) badges.push("🔥 Streak Keeper");
+  if (totals.completedGates >= 50) badges.push("💪 Consistent Learner");
+  return badges;
+}
+
+function getLeaderboardEntries() {
+  const entries = [...state.leaderboard];
+  if (state.user?.email && !entries.some((entry) => entry.email === state.user.email.toLowerCase())) {
+    entries.push({
+      email: state.user.email.toLowerCase(),
+      name: state.user.name,
+      role: state.user.role,
+      lessonState: state.lessonState,
+      activityDates: state.activityDates
+    });
+  }
+
+  return entries
+    .map((entry) => {
+      const summary = getGamificationSummary(
+        normalizeLessonState(entry.lessonState || {}),
+        Array.isArray(entry.activityDates) ? entry.activityDates : []
+      );
+      return {
+        ...entry,
+        summary,
+        rankScore: Math.round(summary.rankScore)
+      };
+    })
+    .sort((a, b) => b.rankScore - a.rankScore || b.summary.xp - a.summary.xp)
+    .slice(0, 10);
+}
+
+function normalizeLessonState(lessonState) {
+  return Object.fromEntries(Object.entries(lessonState || {}).map(([lessonId, progress]) => [lessonId, {
+    completed: Array.isArray(progress?.completed) ? progress.completed : [],
+    attempts: Number(progress?.attempts) || 0,
+    correct: Number(progress?.correct) || 0,
+    submissions: Number(progress?.submissions) || 0,
+    lastTime: Number(progress?.lastTime) || 0
+  }]));
+}
+
+function getCurrentStreak(activityDates) {
+  const dates = new Set((activityDates || []).filter(Boolean));
+  let streak = 0;
+  const cursor = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (!dates.has(getDateKey(cursor)) && dates.has(getDateKey(yesterday))) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  while (dates.has(getDateKey(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function getDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function getPublishedAt(lessonId) {
@@ -989,7 +1288,9 @@ function toTimeInputValue(date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-function signOut() {
+async function signOut() {
+  window.clearTimeout(state.progressSaveTimer);
+  await saveLearnerProgressToCloud();
   state.user = null;
   clearPrivateSessionData();
   if (state.player) {
@@ -1006,12 +1307,16 @@ function clearPrivateSessionData() {
   state.topics = [];
   state.lessons = [];
   state.lessonSchedule = {};
+  state.lessonState = {};
+  state.activityDates = [];
+  state.leaderboard = [];
   state.catalogLoaded = false;
   localStorage.removeItem("signedInUser");
   localStorage.removeItem("courseTopics");
   localStorage.removeItem("lessons");
   localStorage.removeItem("lessonCatalogVersion");
   localStorage.removeItem("lessonSchedule");
+  localStorage.removeItem("lessonState");
 }
 
 function normalizeLessonIndex() {

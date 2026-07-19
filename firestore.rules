@@ -31,5 +31,10 @@ service cloud.firestore {
       allow read: if isActiveUser();
       allow write: if isTeacher();
     }
+
+    match /progress/{email} {
+      allow read: if isActiveUser();
+      allow write: if isActiveUser() && request.auth.token.email == email;
+    }
   }
 }

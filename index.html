@@ -6,7 +6,7 @@
     <title>ClassGate LMS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="styles.css?v=20260719-access-denied-v1">
+    <link rel="stylesheet" href="styles.css?v=20260719-gamification-v1">
   </head>
   <body>
     <section class="auth-gate" id="authGate" aria-label="Google sign in">
@@ -125,6 +125,15 @@
                   <dd id="submissionsLabel">0</dd>
                 </div>
               </dl>
+              <div class="gamification-stack" id="gamificationStack"></div>
+            </section>
+
+            <section class="status-panel leaderboard-panel">
+              <div class="section-heading">
+                <h2>Leaderboard</h2>
+                <span id="leaderboardStatus">Live</span>
+              </div>
+              <div class="leaderboard-list" id="leaderboardList"></div>
             </section>
 
             <section class="notes-panel">
@@ -202,7 +211,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script src="app.js?v=20260719-access-denied-v1"></script>
+    <script src="app.js?v=20260719-gamification-v1"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
   </body>
 </html>

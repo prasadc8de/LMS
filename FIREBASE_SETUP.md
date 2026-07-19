@@ -9,6 +9,7 @@ This app loads private LMS data from Cloud Firestore instead of shipping it in `
 - Firestore catalog document: `lms/courseCatalog`
 - Firestore schedule document: `lms/lessonSchedule`
 - Firestore users collection: `users/{gmail}`
+- Firestore progress collection: `progress/{gmail}`
 - Rules file: `firestore.rules`
 
 ## Required Firebase console setup
@@ -32,6 +33,7 @@ npx firebase-tools deploy --only firestore:rules --project pbde-lms
 - `lms/courseCatalog`: course topics, lesson metadata, video IDs, notes, and checkpoint questions.
 - `lms/lessonSchedule`: lesson publish timestamps.
 - `users/{gmail}`: one document per Gmail, with `email`, `role`, and `active`.
+- `progress/{gmail}`: cloud-synced student lesson progress, activity dates, XP, streaks, badges, and leaderboard summary.
 
 Example user document:
 
@@ -43,4 +45,4 @@ Example user document:
 }
 ```
 
-Use `role: "teacher"` for teacher accounts. Active students and teachers can read the catalog and schedule; only teachers can write catalog/schedule data.
+Use `role: "teacher"` for teacher accounts. Active students and teachers can read the catalog, schedule, and leaderboard progress; only teachers can write catalog/schedule data. Learners can write only their own progress document.
