@@ -20,7 +20,7 @@ const firebasePaths = {
   users: "users"
 };
 
-const appBuildVersion = "20260716-firestore-catalog-v1";
+const appBuildVersion = "20260719-access-denied-v1";
 if (localStorage.getItem("appBuildVersion") !== appBuildVersion) {
   localStorage.removeItem("signedInUser");
   localStorage.removeItem("courseTopics");
@@ -71,6 +71,8 @@ const els = {
   modalTitle: document.querySelector("#modalTitle"),
   modalContent: document.querySelector("#modalContent"),
   modalActions: document.querySelector("#modalActions"),
+  accessDeniedModal: document.querySelector("#accessDeniedModal"),
+  accessDeniedMessage: document.querySelector("#accessDeniedMessage"),
   playerFallback: document.querySelector("#playerFallback"),
   notesBadge: document.querySelector("#notesBadge"),
   notesList: document.querySelector("#notesList"),
@@ -141,15 +143,15 @@ function initializeGoogleSignIn() {
   const button = document.createElement("button");
   button.className = "google-login-button";
   button.type = "button";
-  button.textContent = "Continue with Google";
+  button.textContent = "Sign in via Google";
   button.addEventListener("click", handleFirebaseGoogleSignIn);
   els.googleButton.append(button);
-  els.authStatus.textContent = "Sign in with an allowed Gmail account.";
+  els.authStatus.textContent = "Google authentication checks your Firebase whitelist access.";
 }
 
 async function handleFirebaseGoogleSignIn() {
   if (!state.firebaseAuth) {
-    showAuthError("Firebase Google sign-in is not ready yet.");
+    showAccessDenied("Firebase Google authentication is not ready yet. Please wait a moment and try again.");
     return;
   }
 
@@ -160,21 +162,21 @@ async function handleFirebaseGoogleSignIn() {
     await applySignedInProfile(result.user);
   } catch (error) {
     console.warn("Firebase Google sign-in failed", error);
-    showAuthError(getFirebaseAuthMessage(error));
+    showAccessDenied(getFirebaseAuthMessage(error));
   }
 }
 
 async function applySignedInProfile(profile) {
   if (!profile?.email || profile.emailVerified === false) {
     await state.firebaseAuth?.signOut();
-    showAuthError("Google did not return a verified Gmail account.");
+    showAccessDenied("Google authentication did not return a verified Gmail account.");
     return;
   }
 
   const userRecord = await loadUserRecord(profile.email);
   if (!userRecord?.active || !userRecord.role) {
     await state.firebaseAuth?.signOut();
-    showAuthError(`${profile.email} is not enrolled in this LMS.`);
+    showAccessDenied(`${profile.email} is not whitelisted in Firebase for this LMS.`);
     return;
   }
 
@@ -216,6 +218,16 @@ function renderAuthState() {
 
 function showAuthError(message) {
   els.authStatus.textContent = message;
+  showToast(message);
+}
+
+function showAccessDenied(message) {
+  els.authStatus.textContent = message;
+  els.accessDeniedMessage.textContent = message;
+  if (els.accessDeniedModal.open) {
+    els.accessDeniedModal.close();
+  }
+  els.accessDeniedModal.showModal();
   showToast(message);
 }
 

@@ -6,7 +6,7 @@
     <title>ClassGate LMS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="styles.css?v=20260716-firestore-catalog-v1">
+    <link rel="stylesheet" href="styles.css?v=20260719-access-denied-v1">
   </head>
   <body>
     <section class="auth-gate" id="authGate" aria-label="Google sign in">
@@ -21,7 +21,7 @@
         <div>
           <p class="eyebrow">Google authentication</p>
           <h1>Sign in to continue</h1>
-          <p class="auth-copy">Use the Gmail account that has access to the private YouTube videos. YouTube still verifies private video permissions after LMS sign-in.</p>
+          <p class="auth-copy">Authenticate with Google using a Gmail account that is whitelisted in Firebase for this LMS.</p>
         </div>
         <div id="googleButton" class="google-button"></div>
         <p class="auth-status" id="authStatus">Sign in with an allowed Gmail account.</p>
@@ -183,12 +183,26 @@
       </form>
     </dialog>
 
+    <dialog id="accessDeniedModal" class="modal access-denied-modal">
+      <form method="dialog" class="modal-body">
+        <div class="access-denied-icon">!</div>
+        <div class="modal-header">
+          <p class="eyebrow">Google authentication</p>
+          <h2>Access denied</h2>
+        </div>
+        <p class="access-denied-copy" id="accessDeniedMessage">This Gmail account is not whitelisted in Firebase for this LMS.</p>
+        <div class="modal-actions">
+          <button class="secondary-button" id="accessDeniedCloseBtn" type="submit">Try another Google account</button>
+        </div>
+      </form>
+    </dialog>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script src="app.js?v=20260716-firestore-catalog-v1"></script>
+    <script src="app.js?v=20260719-access-denied-v1"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
   </body>
 </html>
