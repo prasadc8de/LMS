@@ -518,6 +518,83 @@ textarea:focus-visible {
   background: rgba(33, 158, 188, 0.18);
 }
 
+.lecture-group {
+  overflow: hidden;
+  border: 1px solid rgba(245, 251, 255, 0.12);
+  border-radius: var(--radius-md);
+  background: rgba(245, 251, 255, 0.035);
+}
+
+.lecture-group.active {
+  border-color: rgba(33, 158, 188, 0.46);
+  background: rgba(33, 158, 188, 0.10);
+}
+
+.lecture-group-toggle {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 12px;
+  text-align: left;
+  color: var(--ink-on-dark);
+  border: 0;
+  background: transparent;
+}
+
+.lecture-group-toggle > span,
+.lecture-group-toggle > b {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.lecture-group-toggle > span {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  background: rgba(33, 158, 188, 0.72);
+}
+
+.lecture-group-toggle > b {
+  min-width: 32px;
+  height: 28px;
+  padding: 0 7px;
+  border-radius: 999px;
+  color: var(--ink-on-dark);
+  background: rgba(245, 251, 255, 0.10);
+  border: 1px solid var(--line-on-dark);
+  font-size: 0.76rem;
+}
+
+.lecture-group-toggle div {
+  min-width: 0;
+}
+
+.lecture-group-toggle strong,
+.lecture-group-toggle small {
+  display: block;
+}
+
+.lecture-group-toggle small {
+  margin-top: 2px;
+  color: var(--ink-on-dark-soft);
+  font-size: 0.78rem;
+}
+
+.lecture-parts {
+  display: none;
+  gap: 6px;
+  padding: 0 8px 8px 42px;
+}
+
+.lecture-parts.open {
+  display: grid;
+}
+
 .lesson-item {
   width: 100%;
   gap: 12px;
@@ -528,6 +605,12 @@ textarea:focus-visible {
   border-radius: var(--radius-md);
   background: transparent;
   transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.lesson-item.lesson-part {
+  padding: 9px 10px;
+  border-color: rgba(245, 251, 255, 0.08);
+  background: rgba(6, 19, 29, 0.16);
 }
 
 .lesson-item:hover {

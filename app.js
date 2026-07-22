@@ -21,7 +21,7 @@ const firebasePaths = {
   progress: "progress"
 };
 
-const appBuildVersion = "20260722-materials-v1";
+const appBuildVersion = "20260722-groups-v1";
 const programName = "Prasad Boyane Data Engg";
 const coachWhatsAppNumber = "";
 const whatsappBaseUrl = coachWhatsAppNumber ? `https://wa.me/${coachWhatsAppNumber}` : "https://wa.me/";
@@ -50,6 +50,7 @@ const state = {
   topics: [],
   lessons: [],
   openPlaylists: readJSON("openPlaylists", { python: true }),
+  openLessonGroups: readJSON("openLessonGroups", {}),
   lessonSchedule: {},
   activityDates: [],
   leaderboard: [],
@@ -459,6 +460,7 @@ function renderLessonList() {
   els.lessonList.innerHTML = state.topics.map((playlist) => {
     const lessons = getVisibleLessonEntries()
       .filter(({ lesson }) => lesson.playlistId === playlist.id);
+    const lessonRows = getLessonRows(lessons);
     const isOpen = Boolean(state.openPlaylists[playlist.id]);
 
     return `
@@ -467,19 +469,11 @@ function renderLessonList() {
           <span>${isOpen ? "−" : "+"}</span>
           <div>
             <strong>${escapeHTML(playlist.title)}</strong>
-            <small>${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"}</small>
+            <small>${lessonRows.length} ${lessonRows.length === 1 ? "lesson" : "lessons"} / ${lessons.length} ${lessons.length === 1 ? "session" : "sessions"}</small>
           </div>
         </button>
         <div class="playlist-lessons ${isOpen ? "open" : ""}">
-          ${lessons.length > 0 ? lessons.map(({ lesson, index }, lessonIndex) => `
-            <button class="lesson-item ${index === state.currentLessonIndex ? "active" : ""}" type="button" data-lesson-index="${index}">
-              <span>${String(lessonIndex + 1).padStart(2, "0")}</span>
-              <div>
-                <strong>${escapeHTML(lesson.title)}</strong>
-                <small>${escapeHTML(getLessonMeta(lesson))}</small>
-              </div>
-            </button>
-          `).join("") : `
+          ${lessonRows.length > 0 ? lessonRows.map((row, rowIndex) => renderLessonRow(row, rowIndex)).join("") : `
             <a class="empty-playlist-link" href="${escapeHTML(playlist.url)}" target="_blank" rel="noopener noreferrer">
               Open Classroom topic
             </a>
@@ -498,9 +492,113 @@ function renderLessonList() {
     });
   });
 
+  els.lessonList.querySelectorAll(".lecture-group-toggle").forEach((button) => {
+    button.addEventListener("click", () => {
+      const groupKey = button.dataset.lessonGroupKey;
+      state.openLessonGroups[groupKey] = !isLessonGroupOpen(groupKey, getGroupedLessonIndexes(groupKey));
+      localStorage.setItem("openLessonGroups", JSON.stringify(state.openLessonGroups));
+      renderLessonList();
+    });
+  });
+
   els.lessonList.querySelectorAll(".lesson-item").forEach((button) => {
     button.addEventListener("click", () => switchLesson(Number(button.dataset.lessonIndex)));
   });
+}
+
+function renderLessonRow(row, rowIndex) {
+  const rowNumber = String(rowIndex + 1).padStart(2, "0");
+  if (row.type === "lesson") {
+    return renderLessonButton(row.entry, rowNumber);
+  }
+
+  const indexes = row.entries.map(({ index }) => index);
+  const isOpen = isLessonGroupOpen(row.key, indexes);
+  const active = indexes.includes(state.currentLessonIndex);
+  return `
+    <section class="lecture-group ${active ? "active" : ""}">
+      <button class="lecture-group-toggle" type="button" data-lesson-group-key="${escapeHTML(row.key)}" aria-expanded="${isOpen}">
+        <span>${isOpen ? "−" : "+"}</span>
+        <div>
+          <strong>${escapeHTML(row.title)}</strong>
+          <small>${row.entries.length} linked sessions</small>
+        </div>
+        <b>${rowNumber}</b>
+      </button>
+      <div class="lecture-parts ${isOpen ? "open" : ""}">
+        ${row.entries.map((entry, partIndex) => renderLessonButton(entry, `P${partIndex + 1}`, true)).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderLessonButton({ lesson, index }, marker, isPart = false) {
+  return `
+    <button class="lesson-item ${isPart ? "lesson-part" : ""} ${index === state.currentLessonIndex ? "active" : ""}" type="button" data-lesson-index="${index}">
+      <span>${escapeHTML(marker)}</span>
+      <div>
+        <strong>${escapeHTML(isPart ? getLessonPartTitle(lesson) : lesson.title)}</strong>
+        <small>${escapeHTML(getLessonMeta(lesson))}</small>
+      </div>
+    </button>
+  `;
+}
+
+function getLessonRows(entries) {
+  const rows = [];
+  const groupMap = new Map();
+
+  entries.forEach((entry) => {
+    const group = getLectureGroup(entry.lesson);
+    if (!group) {
+      rows.push({ type: "lesson", entry });
+      return;
+    }
+
+    if (!groupMap.has(group.key)) {
+      const row = { type: "group", key: group.key, title: group.title, entries: [] };
+      groupMap.set(group.key, row);
+      rows.push(row);
+    }
+    groupMap.get(group.key).entries.push(entry);
+  });
+
+  return rows.flatMap((row) => {
+    if (row.type !== "group" || row.entries.length < 2) {
+      return row.type === "group" ? row.entries.map((entry) => ({ type: "lesson", entry })) : [row];
+    }
+    return [row];
+  });
+}
+
+function getLectureGroup(lesson) {
+  if (isMaterialLesson(lesson)) return null;
+  const match = String(lesson.title || "").match(/^(.*?\bLecture\s+\d+)\b/i);
+  if (!match) return null;
+  const title = match[1].replace(/\s+/g, " ").trim();
+  return {
+    title,
+    key: `${lesson.playlistId}:${title.toLowerCase()}`
+  };
+}
+
+function getLessonPartTitle(lesson) {
+  const title = String(lesson.title || "");
+  const colonPart = title.split(":").slice(1).join(":").trim();
+  if (colonPart) return colonPart;
+  const group = getLectureGroup(lesson);
+  return group ? title.replace(group.title, "").trim() || lesson.title : lesson.title;
+}
+
+function getGroupedLessonIndexes(groupKey) {
+  return getVisibleLessonEntries()
+    .filter(({ lesson }) => getLectureGroup(lesson)?.key === groupKey)
+    .map(({ index }) => index);
+}
+
+function isLessonGroupOpen(groupKey, indexes) {
+  if (indexes.includes(state.currentLessonIndex)) return true;
+  return Boolean(state.openLessonGroups[groupKey]);
 }
 
 function getPlaylistTitle(playlistId) {
