@@ -21,7 +21,7 @@ const firebasePaths = {
   progress: "progress"
 };
 
-const appBuildVersion = "20260722-groups-v1";
+const appBuildVersion = "20260722-sidebar-v1";
 const programName = "Prasad Boyane Data Engg";
 const coachWhatsAppNumber = "";
 const whatsappBaseUrl = coachWhatsAppNumber ? `https://wa.me/${coachWhatsAppNumber}` : "https://wa.me/";
