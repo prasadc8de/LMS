@@ -21,7 +21,7 @@ const firebasePaths = {
   progress: "progress"
 };
 
-const appBuildVersion = "20260719-brand-v1";
+const appBuildVersion = "20260722-materials-v1";
 const programName = "Prasad Boyane Data Engg";
 const coachWhatsAppNumber = "";
 const whatsappBaseUrl = coachWhatsAppNumber ? `https://wa.me/${coachWhatsAppNumber}` : "https://wa.me/";
@@ -84,6 +84,12 @@ const els = {
   modalActions: document.querySelector("#modalActions"),
   accessDeniedModal: document.querySelector("#accessDeniedModal"),
   accessDeniedMessage: document.querySelector("#accessDeniedMessage"),
+  playerFrame: document.querySelector(".player-frame"),
+  materialPanel: document.querySelector("#materialPanel"),
+  materialEyebrow: document.querySelector("#materialEyebrow"),
+  materialTitle: document.querySelector("#materialTitle"),
+  materialDescription: document.querySelector("#materialDescription"),
+  materialList: document.querySelector("#materialList"),
   playerFallback: document.querySelector("#playerFallback"),
   notesBadge: document.querySelector("#notesBadge"),
   notesList: document.querySelector("#notesList"),
@@ -111,7 +117,7 @@ render();
 initializeFirebaseSync();
 
 const youtubeApiTimer = window.setTimeout(() => {
-  if (!state.player && getCurrentLesson()) {
+  if (!state.player && isVideoLesson(getCurrentLesson())) {
     showToast("YouTube player is taking longer than expected. Check network access or the video ID.");
   }
 }, 9000);
@@ -129,6 +135,7 @@ function ensureYouTubePlayer() {
     renderEmptyLessonState();
     return;
   }
+  if (!isVideoLesson(lesson)) return;
   state.player = new YT.Player("player", {
     videoId: lesson.videoId,
     playerVars: {
@@ -299,13 +306,14 @@ function tickPlayback() {
   if (!state.player || typeof state.player.getCurrentTime !== "function") return;
 
   const lesson = getCurrentLesson();
-  if (!lesson) return;
+  if (!isVideoLesson(lesson)) return;
   const progress = getCurrentProgress();
   const currentTime = Math.floor(state.player.getCurrentTime());
   progress.lastTime = currentTime;
   saveLessonState();
 
-  const skippedGate = lesson.checkpoints.find((gate) => {
+  const checkpoints = getLessonCheckpoints(lesson);
+  const skippedGate = checkpoints.find((gate) => {
     const gateTime = getGateTime(gate);
     return gateTime < currentTime && !progress.completed.includes(gate.id);
   });
@@ -316,7 +324,7 @@ function tickPlayback() {
     return;
   }
 
-  const reachedGate = lesson.checkpoints.find((gate) => {
+  const reachedGate = checkpoints.find((gate) => {
     return currentTime >= getGateTime(gate) && !progress.completed.includes(gate.id);
   });
 
@@ -430,7 +438,7 @@ function render() {
     renderEmptyLessonState();
     return;
   }
-  ensureYouTubePlayer();
+  renderLessonSurface();
   renderCheckpoints();
   renderStats();
   renderGamification();
@@ -542,8 +550,24 @@ function getScheduleStateLabel(lesson) {
 function renderCheckpoints() {
   const lesson = getCurrentLesson();
   const progress = getCurrentProgress();
-  els.intervalLabel.textContent = "Spread across video";
-  els.checkpointList.innerHTML = lesson.checkpoints.map((gate) => {
+  const checkpoints = getLessonCheckpoints(lesson);
+  if (isMaterialLesson(lesson)) {
+    els.intervalLabel.textContent = "Before lessons";
+    els.checkpointList.innerHTML = `
+      <article class="checkpoint material-checkpoint">
+        <div class="checkpoint-icon">Files</div>
+        <div>
+          <strong>Download and review study material</strong>
+          <small>Open the section pack and keep notes ready before starting videos.</small>
+        </div>
+        <span class="pill">Material</span>
+      </article>
+    `;
+    return;
+  }
+
+  els.intervalLabel.textContent = checkpoints.length ? "Spread across video" : "No gates";
+  els.checkpointList.innerHTML = checkpoints.length ? checkpoints.map((gate) => {
     const completed = progress.completed.includes(gate.id);
     const active = state.activeGate === gate.id;
     const status = completed ? "Done" : active ? "Paused" : gate.type === "quiz" ? "Quiz" : "Assignment";
@@ -558,29 +582,41 @@ function renderCheckpoints() {
         <span class="pill">${status}</span>
       </article>
     `;
-  }).join("");
+  }).join("") : `
+    <article class="checkpoint material-checkpoint">
+      <div class="checkpoint-icon">Ready</div>
+      <div>
+        <strong>No checkpoints for this lesson</strong>
+        <small>Watch the video and use the notes panel for guidance.</small>
+      </div>
+      <span class="pill">Open</span>
+    </article>
+  `;
 }
 
 function renderStats() {
   const lesson = getCurrentLesson();
   const progress = getCurrentProgress();
-  const total = lesson.checkpoints.length;
+  const checkpoints = getLessonCheckpoints(lesson);
+  const total = checkpoints.length;
   const completeCount = progress.completed.length;
   const percent = total ? Math.round((completeCount / total) * 100) : 0;
   const score = progress.attempts ? Math.round((progress.correct / progress.attempts) * 100) : 0;
-  const nextGate = lesson.checkpoints.find((gate) => !progress.completed.includes(gate.id));
+  const nextGate = checkpoints.find((gate) => !progress.completed.includes(gate.id));
 
   document.querySelector(".topbar h1").textContent = lesson.title;
   document.querySelector(".topbar .eyebrow").textContent = getPlaylistTitle(lesson.playlistId);
-  els.progressLabel.textContent = `${completeCount} of ${total} gates`;
+  els.progressLabel.textContent = isMaterialLesson(lesson) ? "Study pack" : `${completeCount} of ${total} gates`;
   els.progressMeter.style.width = `${percent}%`;
-  els.completionBadge.textContent = percent === 100 ? "Completed" : "In progress";
-  els.watchPosition.textContent = formatTime(progress.lastTime);
+  els.completionBadge.textContent = isMaterialLesson(lesson) ? "Material" : percent === 100 ? "Completed" : "In progress";
+  els.watchPosition.textContent = isMaterialLesson(lesson) ? "Files" : formatTime(progress.lastTime);
   els.scoreLabel.textContent = `${score}%`;
   els.attemptsLabel.textContent = String(progress.attempts);
   els.submissionsLabel.textContent = String(progress.submissions);
-  els.nextGateLabel.textContent = nextGate ? `${nextGate.type === "quiz" ? "Quiz" : "Assignment"} at ${formatTime(getGateTime(nextGate))}` : "All gates done";
-  els.assignmentStatusLabel.textContent = "Ready";
+  els.nextGateLabel.textContent = isMaterialLesson(lesson)
+    ? "Download study material"
+    : nextGate ? `${nextGate.type === "quiz" ? "Quiz" : "Assignment"} at ${formatTime(getGateTime(nextGate))}` : "All gates done";
+  els.assignmentStatusLabel.textContent = isMaterialLesson(lesson) ? "Drive links" : "Ready";
 }
 
 function renderGamification() {
@@ -647,14 +683,17 @@ function renderLeaderboard() {
 
 function renderLessonNotes() {
   const lesson = getCurrentLesson();
-  els.notesBadge.textContent = lesson.assignmentTitle;
-  els.notesList.innerHTML = lesson.notes.map((note) => `<li>${escapeHTML(note)}</li>`).join("");
+  els.notesBadge.textContent = lesson.assignmentTitle || (isMaterialLesson(lesson) ? "Study material" : "Study guide");
+  els.notesList.innerHTML = (lesson.notes || []).map((note) => `<li>${escapeHTML(note)}</li>`).join("");
+  els.openAssignmentBtn.textContent = isMaterialLesson(lesson) ? "Open Main Material" : "Open Assignment";
 }
 
 function renderEmptyLessonState() {
   document.querySelector(".topbar h1").textContent = "No lessons posted yet";
   document.querySelector(".topbar .eyebrow").textContent = isTeacher() ? "Teacher Schedule" : "Student View";
   els.playerFallback.classList.remove("hidden");
+  els.playerFrame.classList.remove("hidden");
+  els.materialPanel.classList.add("hidden");
   els.playerFallback.innerHTML = `
     <div>
       <span class="play-symbol">Wait</span>
@@ -691,9 +730,13 @@ function switchLesson(index) {
   const lesson = getCurrentLesson();
   const progress = getCurrentProgress();
   if (state.player) {
-    state.player.loadVideoById(lesson.videoId);
-    if (progress.lastTime > 0) {
-      state.player.seekTo(progress.lastTime, true);
+    if (isVideoLesson(lesson)) {
+      state.player.loadVideoById(lesson.videoId);
+      if (progress.lastTime > 0) {
+        state.player.seekTo(progress.lastTime, true);
+      }
+    } else {
+      state.player.pauseVideo();
     }
   } else {
     ensureYouTubePlayer();
@@ -734,6 +777,60 @@ function createEmptyProgress() {
 function saveLessonState() {
   localStorage.setItem("lessonState", JSON.stringify(state.lessonState));
   scheduleProgressSave();
+}
+
+function isMaterialLesson(lesson) {
+  return lesson?.type === "material";
+}
+
+function isVideoLesson(lesson) {
+  return Boolean(lesson && !isMaterialLesson(lesson) && lesson.videoId);
+}
+
+function getLessonCheckpoints(lesson) {
+  return Array.isArray(lesson?.checkpoints) ? lesson.checkpoints : [];
+}
+
+function renderLessonSurface() {
+  const lesson = getCurrentLesson();
+  if (isMaterialLesson(lesson)) {
+    stopPolling();
+    if (state.player && typeof state.player.pauseVideo === "function") {
+      state.player.pauseVideo();
+    }
+    els.playerFrame.classList.add("hidden");
+    els.playerFallback.classList.add("hidden");
+    renderMaterialLesson(lesson);
+    return;
+  }
+
+  els.materialPanel.classList.add("hidden");
+  els.playerFrame.classList.remove("hidden");
+  ensureYouTubePlayer();
+}
+
+function renderMaterialLesson(lesson) {
+  const materials = Array.isArray(lesson.materials) ? lesson.materials : [];
+  els.materialPanel.classList.remove("hidden");
+  els.materialEyebrow.textContent = getPlaylistTitle(lesson.playlistId);
+  els.materialTitle.textContent = lesson.materialTitle || lesson.title;
+  els.materialDescription.textContent = lesson.materialDescription || lesson.subtitle || "Download the study material for this section.";
+  els.materialList.innerHTML = materials.length ? materials.map((material) => `
+    <article class="material-item">
+      <div>
+        <strong>${escapeHTML(material.name)}</strong>
+        <p>${escapeHTML(material.description || "Open this resource in Google Drive.")}</p>
+      </div>
+      <a class="secondary-button compact-button" href="${escapeHTML(material.url)}" target="_blank" rel="noopener noreferrer">Open</a>
+    </article>
+  `).join("") : `
+    <article class="material-item">
+      <div>
+        <strong>No material links configured</strong>
+        <p>Ask the teacher to add Google Drive resources for this section.</p>
+      </div>
+    </article>
+  `;
 }
 
 function registerLearningActivity() {
@@ -1028,7 +1125,8 @@ function getProgressTotals(lessonState) {
   return state.lessons.reduce((totals, lesson) => {
     const progress = lessonState[lesson.id] || createEmptyProgress();
     const completed = Array.isArray(progress.completed) ? progress.completed.length : 0;
-    const lessonDone = lesson.checkpoints?.length > 0 && completed >= lesson.checkpoints.length;
+    const checkpoints = getLessonCheckpoints(lesson);
+    const lessonDone = checkpoints.length > 0 && completed >= checkpoints.length;
     totals.completedGates += completed;
     totals.completedLessons += lessonDone ? 1 : 0;
     totals.attempts += Number(progress.attempts) || 0;
@@ -1175,6 +1273,15 @@ function openAssignment() {
   const lesson = getCurrentLesson();
   if (!lesson) {
     showToast("No assignment is posted yet.");
+    return;
+  }
+  if (isMaterialLesson(lesson)) {
+    const firstMaterialUrl = Array.isArray(lesson.materials) ? lesson.materials[0]?.url : "";
+    if (!firstMaterialUrl) {
+      showToast("No material link is configured yet.");
+      return;
+    }
+    window.open(firstMaterialUrl, "_blank", "noopener,noreferrer");
     return;
   }
   window.open(getLessonAssignmentUrl(lesson), "_blank", "noopener,noreferrer");
